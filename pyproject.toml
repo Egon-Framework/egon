@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "egon"
+dynamic = ["version"]
+description = "A Python parallelization framework for easily building powerful data analysis networks."
+keywords = ["parallel", "multiprocessing", "pipeline", "network", "framework"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development",
+    "Typing :: Typed"
+]
+requires-python = ">=3.7"
+dependencies = []
+
+[[project.authors]]
+name = "Daniel Perrefort"
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools.dynamic]
+version = { attr = "egon.__version__" }
