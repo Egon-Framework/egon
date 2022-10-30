@@ -7,6 +7,7 @@ and ``Input`` objects are used to receive data.
 
 from __future__ import annotations
 
+import multiprocessing as mp
 from typing import Any, Optional, Tuple
 
 
@@ -72,19 +73,28 @@ class InputConnector(BaseConnector):
         """
 
         super().__init__(name)
+        self._queue = mp.Manager().Queue(maxsize=maxsize)
 
     def empty(self) -> bool:
         """Return whether the parent connector instance is empty"""
 
+        return self._queue.empty()
+
     def full(self) -> bool:
         """Return whether the parent connector instance is full"""
+
+        return self._queue.full()
 
     def size(self) -> int:
         """Return the number of items currently stored in the parent instance"""
 
+        return self._queue.qsize()
+
     @property
     def maxsize(self) -> Optional[int]:
         """The maximum number of objects to store in the connector at once"""
+
+        return self._queue.maxsize
 
     def put(self, item: Any) -> None:
         """Add an item to the connector queue
@@ -93,7 +103,9 @@ class InputConnector(BaseConnector):
             item: The item to add to the connector
         """
 
-    def get(self, timeout: Optional[int] = None, refresh_interval: int = 2):
+        self._queue.put(item)
+
+    def get(self, timeout: Optional[int] = None, refresh_interval: int = 2) -> Any:
         """Retrieve data from the instance queue
 
         This is a blocking method and cannot be called asynchronously.
@@ -107,6 +119,8 @@ class InputConnector(BaseConnector):
         Raises:
             TimeOutError: Raised if the method call times out
         """
+
+        return self._queue.get()
 
     def iter_get(self, timeout: Optional[int] = None, refresh_interval: int = 2) -> Any:
         """Iterator over data from the instance queue
