@@ -20,6 +20,9 @@ class BaseConnector:
             name: Optional human-readable name for the connector object
         """
 
+        self._id = hex(id(self))
+        self.name = str(id(self)) if name is None else name
+
     @property
     def parent_node(self):
         """The parent node this connector is assigned to"""
@@ -34,5 +37,4 @@ class BaseConnector:
     def __str__(self) -> str:
         """Return the name of the parent instance"""
 
-    def __repr__(self) -> str:
-        """Return a string representatio the parent instance"""
+        return f'<{self.__class__.__name__}(name={self.name}) object at {self._id}>'
