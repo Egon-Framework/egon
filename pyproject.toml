@@ -27,5 +27,8 @@ name = "Daniel Perrefort"
 file = "README.md"
 content-type = "text/markdown"
 
+[project.optional-dependencies]
+tests = ["coverage", ]
+
 [tool.setuptools.dynamic]
 version = { attr = "egon.__version__" }
