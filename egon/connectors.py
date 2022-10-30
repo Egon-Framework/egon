@@ -16,12 +16,15 @@ class BaseConnector:
     def __init__(self, name: str = None) -> None:
         """Queue-like object for passing data between nodes
 
+        By default, connector names are generated using the instances memory
+        identify in hexadecimal representation.
+
         Args:
-            name: Optional human-readable name for the connector object
+            name: Optional name for the connector object
         """
 
         self._id = hex(id(self))
-        self.name = str(id(self)) if name is None else name
+        self.name = str(self._id) if name is None else name
 
     @property
     def parent_node(self):
