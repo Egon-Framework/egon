@@ -134,6 +134,3 @@ class InputConnector(BaseConnector):
         Raises:
             TimeOutError: Raised if the get call times out
         """
-
-    def close(self) -> None:
-        """Close the parent input connector object"""
