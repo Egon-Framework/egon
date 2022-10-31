@@ -8,6 +8,7 @@ and ``Input`` objects are used to receive data.
 from __future__ import annotations
 
 import multiprocessing as mp
+from queue import Empty
 from typing import Any, Optional, Tuple
 
 
@@ -120,7 +121,25 @@ class InputConnector(BaseConnector):
             TimeOutError: Raised if the method call times out
         """
 
-        return self._queue.get()
+        if refresh_interval <= 0:
+            raise ValueError('Connector refresh interval must be greater than zero.')
+
+        time_remaining = timeout or float('inf')
+        while time_remaining > 0:
+            get_timeout = min(time_remaining, refresh_interval)
+            try:
+                return self._queue.get(timeout=get_timeout)
+
+            except TimeoutError as excep:
+                time_remaining -= get_timeout
+                if self.parent_node and not self.parent_node.is_expecting_data():
+                    raise Empty from excep
+
+            except Empty:
+                if self.parent_node and not self.parent_node.is_expecting_data():
+                    raise
+
+        raise TimeoutError
 
     def iter_get(self, timeout: Optional[int] = None, refresh_interval: int = 2) -> Any:
         """Iterator over data from the instance queue
@@ -134,3 +153,10 @@ class InputConnector(BaseConnector):
         Raises:
             TimeOutError: Raised if the get call times out
         """
+
+        while self.parent_node.expecting_data():
+            try:
+                yield self.get(timeout=timeout, refresh_interval=refresh_interval)
+
+            except Empty as excep:
+                raise StopIteration from excep
