@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Optional, Tuple
 
+from egon.exceptions import MissingConnectionError
+
 
 class BaseConnector:
     """Base class for building signal/slot style connectors on top of an underlying queue"""
@@ -70,6 +72,9 @@ class OutputConnector(BaseConnector):
             name: Optional name for the connector object
         """
 
+        super().__init__(name=name)
+        self._partner: list[InputConnector] = []
+
     def connect(self, conn: InputConnector) -> None:
         """Establish the flow of data between this connector and an ``InputConnector`` instance
 
@@ -93,3 +98,9 @@ class OutputConnector(BaseConnector):
         Raises:
             MissingConnectionError: If trying to put data into an output that isn't connected to an input
         """
+
+        if not self.is_connected():
+            raise MissingConnectionError('Output connector is not connected to any input connectors.')
+
+        for partner in self.partners:
+            partner._put(item)
