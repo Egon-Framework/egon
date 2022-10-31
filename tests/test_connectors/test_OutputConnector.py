@@ -7,7 +7,7 @@ from egon.exceptions import MissingConnectionError
 
 
 class Put(TestCase):
-    """Test data routing by ``Output`` instances"""
+    """Tests for the ``put`` method"""
 
     def test_value_passed_to_input(self) -> None:
         """Test the ``put`` method passes data to connected ``InputConnector`` instances"""

@@ -33,7 +33,7 @@ class BaseConnector:
         self._node = None
 
         # Other connector objects connected to this instance
-        self._connected_partners = []
+        self._connected_partners = set()
 
     @property
     def parent_node(self) -> Optional:  # Todo: update this type hint
@@ -58,22 +58,12 @@ class BaseConnector:
         return f'<{self.__class__.__name__}(name={self.name}) object at {self._id}>'
 
 
-class InputConnector:
+class InputConnector(BaseConnector):
     ...
 
 
 class OutputConnector(BaseConnector):
     """Handles the output of data from a pipeline node"""
-
-    def __init__(self, name: str = None) -> None:
-        """Create a new connector instance
-
-        Args:
-            name: Optional name for the connector object
-        """
-
-        super().__init__(name=name)
-        self._partner: list[InputConnector] = []
 
     def connect(self, conn: InputConnector) -> None:
         """Establish the flow of data between this connector and an ``InputConnector`` instance
@@ -82,12 +72,20 @@ class OutputConnector(BaseConnector):
             conn: The input connector object ot connect with
         """
 
+        if type(conn) is type(self):
+            raise ValueError('Cannot join together two connection objects of the same type.')
+
+        self._connected_partners.add(conn)
+        conn._connected_partners.add(self)
+
     def disconnect(self, conn: InputConnector) -> None:
         """Disconnect any established connection to the given ``InputConnector`` instance
 
         Args:
             conn: The input connector to disconnect from
         """
+
+        self._connected_partners.remove(conn)
 
     def put(self, item: Any) -> None:
         """Add an item to the connector queue
@@ -102,5 +100,5 @@ class OutputConnector(BaseConnector):
         if not self.is_connected():
             raise MissingConnectionError('Output connector is not connected to any input connectors.')
 
-        for partner in self.partners:
+        for partner in self._connected_partners:
             partner._put(item)
