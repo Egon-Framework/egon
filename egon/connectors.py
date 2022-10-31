@@ -11,6 +11,8 @@ import multiprocessing as mp
 from queue import Empty
 from typing import Any, Optional, Tuple
 
+from egon.exceptions import MissingConnectionError
+
 
 class BaseConnector:
     """Base class for building signal/slot style connectors on top of an underlying queue"""
@@ -153,6 +155,11 @@ class InputConnector(BaseConnector):
         Raises:
             TimeOutError: Raised if the get call times out
         """
+
+        if self.parent_node is None:
+            raise MissingConnectionError(
+                'The ``iter_get`` method cannot be used for ``InputConnector`` instances not assigned to a parent node.'
+            )
 
         while self.parent_node.expecting_data():
             try:

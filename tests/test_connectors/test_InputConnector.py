@@ -1,9 +1,10 @@
 """Tests for the ``InputConnector`` class"""
 
 from queue import Empty
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from egon.connectors import InputConnector
+from egon.exceptions import MissingConnectionError
 
 
 class QueueProperties(TestCase):
@@ -47,7 +48,7 @@ class QueueProperties(TestCase):
 
 
 # TODO: Test behavior in relation to parent nodes
-class InputGet(TestCase):
+class Get(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``get`` method"""
 
     def test_error_on_zero_refresh(self) -> None:
@@ -83,3 +84,31 @@ class InputGet(TestCase):
 
         with self.assertRaises(Empty):
             InputConnector().get()
+
+
+class IterGet(TestCase):
+    """Test data retrieval from ``InputConnector`` instances via the ``iter_get`` method"""
+
+    @skip('Testing iter_get in this way requires finishing the node classes')
+    def test_returns_queue_values(self) -> None:
+        """Test values are returned from the instance queue"""
+
+        connector = InputConnector()
+        connector.put(1)
+        connector.put(2)
+
+        self.assertSequenceEqual([1, 2], list(connector.iter_get()))
+
+    def test_missing_connection_error(self) -> None:
+        """Test a ``MissingConnectionError`` error is raised if there is no parent node"""
+
+        with self.assertRaises(MissingConnectionError):
+            next(InputConnector().iter_get())
+
+    @skip('Testing iter_get in this way requires finishing the node classes')
+    def test_empty_iterable(self) -> None:
+        """Test the ``iter_get`` method can be used on an empty connector instance"""
+
+        connector = InputConnector()
+        for _ in connector.iter_get():
+            self.fail('No data should have been returned')
