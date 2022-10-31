@@ -1,5 +1,5 @@
 """Tests for the ``InputConnector`` class"""
-
+from queue import Empty
 from unittest import TestCase
 
 from egon.connectors import InputConnector
@@ -43,3 +43,39 @@ class QueueProperties(TestCase):
 
         connector.get(1)
         self.assertTrue(connector.empty())
+
+
+class InputGet(TestCase):
+    """Test data retrieval from ``InputConnector`` instances via the ``get`` method"""
+
+    def test_error_on_zero_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is zero"""
+
+        with self.assertRaises(ValueError):
+            InputConnector().get(timeout=15, refresh_interval=0)
+
+    def test_error_on_negative_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is negative"""
+
+        with self.assertRaises(ValueError):
+            InputConnector().get(timeout=15, refresh_interval=-1)
+
+    def test_returns_queue_value(self) -> None:
+        """Test data is returned the connector queue"""
+
+        test_val = 'test_val'
+        connector = InputConnector()
+        connector.put(test_val)
+        self.assertEqual(test_val, connector.get(timeout=1000))
+
+    def test_timeout_error(self) -> None:
+        """Test a ``TimeoutError`` is raised when fetching an item times out"""
+
+        with self.assertRaises(TimeoutError):
+            InputConnector().get(timeout=0)
+
+    def test_empty_error(self):
+        """Test an ``Empty`` error is raised when fetching from an empty connector"""
+
+        with self.assertRaises(Empty):
+            InputConnector().get()
