@@ -16,7 +16,7 @@ class QueueProperties(TestCase):
         connector = InputConnector(maxsize=1)
         self.assertEqual(connector.size(), 0)
 
-        connector.put(1)
+        connector._put(1)
         self.assertEqual(connector.size(), 1)
 
         connector.get(1)
@@ -28,7 +28,7 @@ class QueueProperties(TestCase):
         connector = InputConnector(maxsize=1)
         self.assertFalse(connector.full())
 
-        connector._queue.put(1)
+        connector._put(1)
         self.assertTrue(connector.full())
 
         connector.get(1)
@@ -40,7 +40,7 @@ class QueueProperties(TestCase):
         connector = InputConnector(maxsize=1)
         self.assertTrue(connector.empty())
 
-        connector._queue.put(1)
+        connector._put(1)
         self.assertFalse(connector.empty())
 
         connector.get(1)
@@ -68,14 +68,14 @@ class Get(TestCase):
 
         test_val = 'test_val'
         connector = InputConnector()
-        connector.put(test_val)
+        connector._put(test_val)
         self.assertEqual(test_val, connector.get(timeout=1000))
 
     def test_timeout_error(self) -> None:
         """Test a ``TimeoutError`` is raised when fetching an item times out"""
 
         connector = InputConnector()
-        connector.put(1)
+        connector._put(1)
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
@@ -94,8 +94,8 @@ class IterGet(TestCase):
         """Test values are returned from the instance queue"""
 
         connector = InputConnector()
-        connector.put(1)
-        connector.put(2)
+        connector._put(1)
+        connector._put(2)
 
         self.assertSequenceEqual([1, 2], list(connector.iter_get()))
 

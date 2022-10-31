@@ -99,7 +99,7 @@ class InputConnector(BaseConnector):
 
         return self._queue.maxsize
 
-    def put(self, item: Any) -> None:
+    def _put(self, item: Any) -> None:
         """Add an item to the connector queue
 
         Args:
