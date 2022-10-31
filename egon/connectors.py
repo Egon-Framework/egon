@@ -7,7 +7,7 @@ and ``Input`` objects are used to receive data.
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 
 class BaseConnector:
@@ -54,3 +54,42 @@ class BaseConnector:
         """Return the name of the parent instance"""
 
         return f'<{self.__class__.__name__}(name={self.name}) object at {self._id}>'
+
+
+class InputConnector:
+    ...
+
+
+class OutputConnector(BaseConnector):
+    """Handles the output of data from a pipeline node"""
+
+    def __init__(self, name: str = None) -> None:
+        """Create a new connector instance
+
+        Args:
+            name: Optional name for the connector object
+        """
+
+    def connect(self, conn: InputConnector) -> None:
+        """Establish the flow of data between this connector and an ``InputConnector`` instance
+
+        Args:
+            conn: The input connector object ot connect with
+        """
+
+    def disconnect(self, conn: InputConnector) -> None:
+        """Disconnect any established connection to the given ``InputConnector`` instance
+
+        Args:
+            conn: The input connector to disconnect from
+        """
+
+    def put(self, item: Any) -> None:
+        """Add an item to the connector queue
+
+        Args:
+            item: The item to add to the connector
+
+        Raises:
+            MissingConnectionError: If trying to put data into an output that isn't connected to an input
+        """
