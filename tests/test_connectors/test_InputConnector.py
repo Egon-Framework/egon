@@ -1,4 +1,5 @@
 """Tests for the ``InputConnector`` class"""
+
 from queue import Empty
 from unittest import TestCase
 
@@ -45,6 +46,7 @@ class QueueProperties(TestCase):
         self.assertTrue(connector.empty())
 
 
+# TODO: Test behavior in relation to parent nodes
 class InputGet(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``get`` method"""
 
@@ -71,8 +73,10 @@ class InputGet(TestCase):
     def test_timeout_error(self) -> None:
         """Test a ``TimeoutError`` is raised when fetching an item times out"""
 
+        connector = InputConnector()
+        connector.put(1)
         with self.assertRaises(TimeoutError):
-            InputConnector().get(timeout=0)
+            connector.get(timeout=0)
 
     def test_empty_error(self):
         """Test an ``Empty`` error is raised when fetching from an empty connector"""

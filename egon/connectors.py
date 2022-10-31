@@ -74,7 +74,7 @@ class InputConnector(BaseConnector):
         """
 
         super().__init__(name)
-        self._queue = mp.Manager().Queue(maxsize=maxsize)
+        self._queue = mp.Manager().Queue(maxsize=maxsize or 0)
 
     def empty(self) -> bool:
         """Return whether the parent connector instance is empty"""
@@ -124,20 +124,20 @@ class InputConnector(BaseConnector):
         if refresh_interval <= 0:
             raise ValueError('Connector refresh interval must be greater than zero.')
 
-        time_remaining = timeout or float('inf')
-        while time_remaining > 0:
-            get_timeout = min(time_remaining, refresh_interval)
+        if timeout is None:
+            timeout = float('inf')
+
+        while timeout > 0:
+            this_timeout = min(timeout, refresh_interval)
             try:
-                return self._queue.get(timeout=get_timeout)
+                return self._queue.get(timeout=this_timeout)
 
-            except TimeoutError as excep:
-                time_remaining -= get_timeout
-                if self.parent_node and not self.parent_node.is_expecting_data():
-                    raise Empty from excep
+            except (Empty, TimeoutError):
+                timeout -= this_timeout
+                if self.parent_node and self.parent_node.is_expecting_data():
+                    continue
 
-            except Empty:
-                if self.parent_node and not self.parent_node.is_expecting_data():
-                    raise
+                raise
 
         raise TimeoutError
 
