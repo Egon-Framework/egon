@@ -21,7 +21,7 @@ class Put(TestCase):
         test_val = 'test_val'
         output.put(test_val)
         self.assertEqual(input1.get(), test_val, 'First input connector did not return data')
-        self.assertEqual(input2.get(), test_val, 'First input connector did not return data')
+        self.assertEqual(input2.get(), test_val, 'Second input connector did not return data')
 
     def test_error_if_unconnected(self) -> None:
         """Test a ``MissingConnectionError`` error is raised if the instance is not connected"""

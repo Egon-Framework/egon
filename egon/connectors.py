@@ -156,7 +156,9 @@ class InputConnector(BaseConnector):
             refresh_interval: How often to check if data is expected from upstream
 
         Raises:
+            MissingConnectionError: When the connector is not assigned to a parent node
             TimeOutError: Raised if the method call times out
+            StopIteration: When there is no more data to iterate over
         """
 
         if self.parent_node is None:
@@ -179,11 +181,14 @@ class OutputConnector(BaseConnector):
         """Establish the flow of data between this connector and an ``InputConnector`` instance
 
         Args:
-            conn: The input connector object ot connect with
+            conn: The input connector object to connect with
+
+        Raises:
+            ValueError: When connecting together two output connectors
         """
 
         if type(conn) is type(self):
-            raise ValueError('Cannot join together two connection objects of the same type.')
+            raise ValueError('Cannot join together two connector objects of the same type.')
 
         self._connected_partners.add(conn)
         conn._connected_partners.add(self)
@@ -193,11 +198,15 @@ class OutputConnector(BaseConnector):
 
         Args:
             conn: The input connector to disconnect from
+
+        Raises:
+            MissingConnectionError: When disconnecting two connectors that are not connected
         """
 
         if conn not in self._connected_partners:
             raise MissingConnectionError('The given connector object is not connected to this instance')
 
+        # Disconnect both connectors from each other
         conn._connected_partners.remove(self)
         self._connected_partners.remove(conn)
 
@@ -208,11 +217,11 @@ class OutputConnector(BaseConnector):
             item: The item to add to the connector
 
         Raises:
-            MissingConnectionError: If trying to put data into an output that isn't connected to an input
+            MissingConnectionError: When putting data into an output that isn't connected to an input
         """
 
         if not self.is_connected():
-            raise MissingConnectionError('Output connector is not connected to any input connectors.')
+            raise MissingConnectionError('This output connector is not connected to any input connectors.')
 
         for partner in self._connected_partners:
             partner._put(item)
