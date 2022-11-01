@@ -8,7 +8,7 @@ from egon.exceptions import MissingConnectionError
 
 
 class QueueProperties(TestCase):
-    """Test return values for queue properties by the ``Connector`` class"""
+    """Test queue properties are properly exposed by the ``InputConnector`` class"""
 
     def test_size_matches_queue_size(self) -> None:
         """Test the ``size`` method returns the size of the queue`"""
@@ -64,7 +64,7 @@ class Get(TestCase):
             InputConnector().get(timeout=15, refresh_interval=-1)
 
     def test_returns_queue_value(self) -> None:
-        """Test data is returned the connector queue"""
+        """Test data is returned from the connector queue"""
 
         test_val = 'test_val'
         connector = InputConnector()
@@ -72,14 +72,14 @@ class Get(TestCase):
         self.assertEqual(test_val, connector.get(timeout=1000))
 
     def test_timeout_error(self) -> None:
-        """Test a ``TimeoutError`` is raised when fetching an item times out"""
+        """Test a ``TimeoutError`` is raised when the method times out"""
 
         connector = InputConnector()
         connector._put(1)
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
-    def test_empty_error(self):
+    def test_empty_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector"""
 
         with self.assertRaises(Empty):
@@ -100,7 +100,7 @@ class IterGet(TestCase):
         self.assertSequenceEqual([1, 2], list(connector.iter_get()))
 
     def test_missing_connection_error(self) -> None:
-        """Test a ``MissingConnectionError`` error is raised if there is no parent node"""
+        """Test a ``MissingConnectionError`` error is raised if the connector has no parent node"""
 
         with self.assertRaises(MissingConnectionError):
             next(InputConnector().iter_get())
