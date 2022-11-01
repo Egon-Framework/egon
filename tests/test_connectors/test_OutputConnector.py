@@ -28,3 +28,24 @@ class Put(TestCase):
 
         with self.assertRaises(MissingConnectionError):
             OutputConnector().put(5)
+
+
+class Connect(TestCase):
+    """Tests for the ``connect`` method"""
+
+    def test_error_on_connection_to_same_type(self) -> None:
+        """Test an error is raised when connecting two outputs together"""
+
+        with self.assertRaises(ValueError):
+            OutputConnector().connect(OutputConnector())
+
+    def test_duplicate_connections(self) -> None:
+        """Test an error is raised when trying to overwrite an existing connection"""
+
+        input_conn = InputConnector()
+        output_conn = OutputConnector()
+
+        output_conn.connect(input_conn)
+        output_conn.connect(input_conn)
+        self.assertSequenceEqual((output_conn,), input_conn.partners)
+        self.assertSequenceEqual((input_conn,), output_conn.partners)
