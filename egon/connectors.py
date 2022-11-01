@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from queue import Empty
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Set, Tuple
 
 from egon.exceptions import MissingConnectionError
 
@@ -38,7 +38,7 @@ class BaseConnector:
         self._node = None
 
         # Other connector objects connected to this instance
-        self._connected_partners = set()
+        self._connected_partners: Set[BaseConnector] = set()
 
     @property
     def parent_node(self) -> Optional:  # Todo: update this type hint
@@ -47,7 +47,7 @@ class BaseConnector:
         return self._node
 
     @property
-    def partners(self) -> Tuple:
+    def partners(self) -> Tuple[BaseConnector]:
         """Return a tuple of connectors that are connected to this instance"""
 
         return tuple(self._connected_partners)
@@ -195,6 +195,10 @@ class OutputConnector(BaseConnector):
             conn: The input connector to disconnect from
         """
 
+        if conn not in self._connected_partners:
+            raise MissingConnectionError('The given connector object is not connected to this instance')
+
+        conn._connected_partners.remove(self)
         self._connected_partners.remove(conn)
 
     def put(self, item: Any) -> None:

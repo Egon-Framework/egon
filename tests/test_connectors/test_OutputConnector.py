@@ -33,6 +33,21 @@ class Put(TestCase):
 class Connect(TestCase):
     """Tests for the ``connect`` method"""
 
+    def test_is_connected(self):
+        """Test connector objects are connected by the ``connect`` method"""
+
+        input_conn = InputConnector()
+        output_conn = OutputConnector()
+        output_conn.connect(input_conn)
+
+        # Test the connectors register as being connected
+        self.assertTrue(input_conn.is_connected())
+        self.assertTrue(output_conn.is_connected())
+
+        # Test the connectors recognize each other as partners
+        self.assertIn(output_conn, input_conn.partners)
+        self.assertIn(input_conn, output_conn.partners)
+
     def test_error_on_connection_to_same_type(self) -> None:
         """Test an error is raised when connecting two outputs together"""
 
@@ -49,3 +64,30 @@ class Connect(TestCase):
         output_conn.connect(input_conn)
         self.assertSequenceEqual((output_conn,), input_conn.partners)
         self.assertSequenceEqual((input_conn,), output_conn.partners)
+
+
+class Disconnect(TestCase):
+    """Tests for the ``disconnect`` method"""
+
+    def test_both_connectors_are_disconnected(self) -> None:
+        """Test both connectors are no longer listed as partners"""
+
+        # Connect and then disconnect two connectors
+        input_conn = InputConnector()
+        output_conn = OutputConnector()
+        output_conn.connect(input_conn)
+        output_conn.disconnect(input_conn)
+
+        # Test the connectors no longer register as being connected
+        self.assertFalse(input_conn.is_connected())
+        self.assertFalse(output_conn.is_connected())
+
+        # Test the connectors are no longer recognized as partners
+        self.assertNotIn(output_conn, input_conn.partners)
+        self.assertNotIn(input_conn, output_conn.partners)
+
+    def test_error_if_not_connected(self) -> None:
+        """Test a ``MissingConnectionError`` error is raised when disconnecting a connector that is not connected"""
+
+        with self.assertRaises(MissingConnectionError):
+            OutputConnector().disconnect(InputConnector())
