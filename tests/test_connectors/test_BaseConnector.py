@@ -6,7 +6,7 @@ from egon.connectors import BaseConnector
 
 
 class StringRepresentation(TestCase):
-    """Tests for the representation of connector instances as strings"""
+    """Test the representation of connector instances as strings"""
 
     def test_default_name_matches_id(self) -> None:
         """Test the default connector name matches the instance ID"""
