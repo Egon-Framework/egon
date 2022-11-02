@@ -21,6 +21,9 @@ class Node(abc.ABC):
             num_processes: The number of processes to allocate to the node instance
         """
 
+        self.name = name or self.__class__.__name__
+        self._engine = MultiprocessingEngine(num_processes)
+
     def _iter_attrs_by_type(self, attr_type) -> Iterable:
         """Return an iterable over instance attributes matching the given type
 
@@ -42,13 +45,15 @@ class Node(abc.ABC):
             ):
                 yield attr_value
 
-    @property
-    def num_processes(self) -> int:
-        """The number of processes assigned to the analysis node"""
+    def get_processes_count(self) -> int:
+        """Return number of processes assigned to the analysis node"""
 
-    @num_processes.setter
-    def num_processes(self, val) -> None:
-        ...
+        return self._engine.get_processes_count()
+
+    def set_processes_count(self, val) -> None:
+        """Update the number of processes assigned to the analysis node"""
+
+        self._engine.set_processes_count(val)
 
     def input_connectors(self) -> Tuple[InputConnector, ...]:
         """Return a collection of input connectors attached to this node"""
