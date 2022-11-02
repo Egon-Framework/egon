@@ -8,6 +8,7 @@ import abc
 from typing import Iterable, Tuple
 
 from .connectors import InputConnector, OutputConnector
+from .exceptions import NodeValidationError
 
 
 class Node(abc.ABC):
@@ -85,6 +86,14 @@ class Node(abc.ABC):
         Raises:
             NodeValidationError: If the node does not validate properly
         """
+
+        for connector in self._iter_attrs_by_type(InputConnector):
+            if not connector.is_connected():
+                raise NodeValidationError(f'Node has an unconnected input named {connector.name}')
+
+        for connector in self._iter_attrs_by_type(OutputConnector):
+            if not connector.is_connected():
+                raise NodeValidationError(f'Node has an unconnected output named {connector.name}')
 
     @classmethod
     def class_setup(cls) -> None:
