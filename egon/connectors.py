@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from queue import Empty
-from typing import Any, Optional, Set, Tuple
+from typing import Any, Optional, Set, TYPE_CHECKING, Tuple
 
 from egon.exceptions import MissingConnectionError
+
+if TYPE_CHECKING:
+    from .nodes import Node
 
 
 class BaseConnector:
@@ -41,7 +44,7 @@ class BaseConnector:
         self._connected_partners: Set[BaseConnector] = set()
 
     @property
-    def parent_node(self) -> Optional:  # Todo: update this type hint
+    def parent_node(self) -> Optional[Node]:
         """The parent node this connector is assigned to"""
 
         return self._node

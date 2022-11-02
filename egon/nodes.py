@@ -7,7 +7,7 @@ from __future__ import annotations
 import abc
 from typing import Tuple
 
-from . import connectors
+from .connectors import InputConnector, OutputConnector
 
 
 class Node(abc.ABC):
@@ -29,18 +29,18 @@ class Node(abc.ABC):
     def num_processes(self, val) -> None:
         ...
 
-    def input_connectors(self) -> Tuple[connectors.Input, ...]:
+    def input_connectors(self) -> Tuple[InputConnector, ...]:
         """Return a collection of input connectors attached to this node"""
 
-    def output_connectors(self) -> Tuple[connectors.Input, ...]:
+    def output_connectors(self) -> Tuple[OutputConnector, ...]:
         """Return a collection of output connectors attached to this node"""
 
     @property
-    def upstream_nodes(self) -> Tuple[Node]:
+    def upstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of upstream nodes connected to the current node"""
 
     @property
-    def downstream_nodes(self) -> Tuple[Node]:
+    def downstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of downstream nodes connected to the current node"""
 
     def validate(self) -> None:
@@ -90,7 +90,7 @@ class Node(abc.ABC):
         For the corresponding setup logic, see the ``class_setup`` method.
         """
 
-    def execute(self):
+    def execute(self) -> None:
         """Execute the pipeline node, including all setup and teardown tasks"""
 
     def is_finished(self) -> bool:
