@@ -14,7 +14,7 @@ from .exceptions import NodeValidationError
 class Node(abc.ABC):
     """Abstract base class for constructing analysis nodes"""
 
-    def __init__(self, name: str = None, num_processes: int = 1) -> None:
+    def __init__(self, name: str = None, num_processes: int = 0) -> None:
         """Instantiate a new pipeline node
 
         Args:
@@ -135,8 +135,23 @@ class Node(abc.ABC):
         For the corresponding setup logic, see the ``class_setup`` method.
         """
 
+    def _execute_helper(self) -> None:
+        """Helper method for the public ``execute`` method
+
+        This method is a wrapper for running the ``setup``, ``action``, and
+        ``teardown`` methods in order.
+        """
+
+        self.setup()
+        self.action()
+        self.teardown()
+
     def execute(self) -> None:
         """Execute the pipeline node, including all setup and teardown tasks"""
+
+        self.class_setup()
+        self._engine.launch(self._execute_helper)
+        self.class_teardown()
 
     def is_finished(self) -> bool:
         """Return whether all node processes have finished processing data
