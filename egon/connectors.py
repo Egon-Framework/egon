@@ -181,10 +181,10 @@ class OutputConnector(BaseConnector):
         """Establish the flow of data between this connector and an ``InputConnector`` instance
 
         Args:
-            conn: The input connector object to connect with
+            conn: The input connector to connect with
 
         Raises:
-            ValueError: When connecting together two output connectors
+            ValueError: When attempting to connect two output connectors
         """
 
         if type(conn) is type(self):
@@ -194,7 +194,7 @@ class OutputConnector(BaseConnector):
         conn._connected_partners.add(self)
 
     def disconnect(self, conn: InputConnector) -> None:
-        """Disconnect any established connection to the given ``InputConnector`` instance
+        """Disconnect an established connection to the given ``InputConnector`` instance
 
         Args:
             conn: The input connector to disconnect from
