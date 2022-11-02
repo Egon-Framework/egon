@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from queue import Empty
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Set, Tuple
 
 from egon.exceptions import MissingConnectionError
 
@@ -38,7 +38,7 @@ class BaseConnector:
         self._node = None
 
         # Other connector objects connected to this instance
-        self._connected_partners = []
+        self._connected_partners: Set[BaseConnector] = set()
 
     @property
     def parent_node(self) -> Optional:  # Todo: update this type hint
@@ -47,7 +47,7 @@ class BaseConnector:
         return self._node
 
     @property
-    def partners(self) -> Tuple:
+    def partners(self) -> Tuple[BaseConnector]:
         """Return a tuple of connectors that are connected to this instance"""
 
         return tuple(self._connected_partners)
@@ -156,7 +156,9 @@ class InputConnector(BaseConnector):
             refresh_interval: How often to check if data is expected from upstream
 
         Raises:
+            MissingConnectionError: When the connector is not assigned to a parent node
             TimeOutError: Raised if the method call times out
+            StopIteration: When there is no more data to iterate over
         """
 
         if self.parent_node is None:
@@ -170,3 +172,56 @@ class InputConnector(BaseConnector):
 
             except Empty as excep:
                 raise StopIteration from excep
+
+
+class OutputConnector(BaseConnector):
+    """Handles the output of data from a pipeline node"""
+
+    def connect(self, conn: InputConnector) -> None:
+        """Establish the flow of data between this connector and an ``InputConnector`` instance
+
+        Args:
+            conn: The input connector to connect with
+
+        Raises:
+            ValueError: When attempting to connect two output connectors
+        """
+
+        if type(conn) is type(self):
+            raise ValueError('Cannot join together two connector objects of the same type.')
+
+        self._connected_partners.add(conn)
+        conn._connected_partners.add(self)
+
+    def disconnect(self, conn: InputConnector) -> None:
+        """Disconnect an established connection to the given ``InputConnector`` instance
+
+        Args:
+            conn: The input connector to disconnect from
+
+        Raises:
+            MissingConnectionError: When disconnecting two connectors that are not connected
+        """
+
+        if conn not in self._connected_partners:
+            raise MissingConnectionError('The given connector object is not connected to this instance')
+
+        # Disconnect both connectors from each other
+        conn._connected_partners.remove(self)
+        self._connected_partners.remove(conn)
+
+    def put(self, item: Any) -> None:
+        """Add an item to the connector queue
+
+        Args:
+            item: The item to add to the connector
+
+        Raises:
+            MissingConnectionError: When putting data into an output that isn't connected to an input
+        """
+
+        if not self.is_connected():
+            raise MissingConnectionError('This output connector is not connected to any input connectors.')
+
+        for partner in self._connected_partners:
+            partner._put(item)

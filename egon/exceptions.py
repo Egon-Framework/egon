@@ -1,4 +1,4 @@
-"""Custom exception classes raised by the porent package."""
+"""Custom exception classes raised by the parent package."""
 
 
 class MissingConnectionError(Exception):
