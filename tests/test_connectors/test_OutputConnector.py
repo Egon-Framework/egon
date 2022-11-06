@@ -7,7 +7,7 @@ from egon.exceptions import MissingConnectionError
 
 
 class Put(TestCase):
-    """Tests for the ``put`` method"""
+    """Test the ``put`` method"""
 
     def test_value_passed_to_input(self) -> None:
         """Test the ``put`` method passes data to connected ``InputConnector`` instances"""
@@ -31,7 +31,7 @@ class Put(TestCase):
 
 
 class Connect(TestCase):
-    """Tests for the ``connect`` method"""
+    """Test the ``connect`` method"""
 
     def test_is_connected(self):
         """Test connector objects are connected by the ``connect`` method"""
@@ -49,13 +49,13 @@ class Connect(TestCase):
         self.assertIn(input_conn, output_conn.partners)
 
     def test_error_on_connection_to_same_type(self) -> None:
-        """Test an error is raised when connecting two outputs together"""
+        """Test a ``ValueError`` is raised when connecting two outputs together"""
 
         with self.assertRaises(ValueError):
             OutputConnector().connect(OutputConnector())
 
     def test_duplicate_connections(self) -> None:
-        """Test an error is raised when trying to overwrite an existing connection"""
+        """Test duplicate connections cannot be created between inputs and outputs"""
 
         input_conn = InputConnector()
         output_conn = OutputConnector()
@@ -67,7 +67,7 @@ class Connect(TestCase):
 
 
 class Disconnect(TestCase):
-    """Tests for the ``disconnect`` method"""
+    """Test the ``disconnect`` method"""
 
     def test_both_connectors_are_disconnected(self) -> None:
         """Test both connectors are no longer listed as partners"""
