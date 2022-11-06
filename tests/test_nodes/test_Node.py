@@ -35,3 +35,56 @@ class NameAssignment(TestCase):
         node = TestNode(num_processes=1, name='test_name')
         self.assertEqual('test_name', node.name)
 
+
+class ProcessAllocation(TestCase):
+    """Test the allocation of processes at class instantiation"""
+
+    def test_correct_process_count(self) -> None:
+        """Test the process count matches the value passed at init"""
+
+        node = TestNode(num_processes=4)
+        self.assertEqual(4, node.get_num_processes())
+
+    def test_negative_processes_error(self) -> None:
+        """Test a ``ValueError`` is raised for negative processes"""
+
+        with self.assertRaises(ValueError):
+            TestNode(num_processes=-1)
+
+    def test_zero_processes_error(self) -> None:
+        """Test a ``ValueError`` is raised for zero processes"""
+
+        with self.assertRaises(ValueError):
+            TestNode(num_processes=0)
+
+
+class SetNumProcesses(TestCase):
+    """Test setting/getting the number of node processes"""
+
+    def test_processes_count(self) -> None:
+        """Test the getter values are updated by the setter"""
+
+        node = TestNode(num_processes=4)
+        self.assertEqual(4, node.get_num_processes())
+
+        # Increase the number of processes
+        node.set_num_processes(6)
+        self.assertEqual(6, node.get_num_processes())
+
+        # Decrease the number of processes
+        node.set_num_processes(2)
+        self.assertEqual(2, node.get_num_processes())
+
+    def test_negative_processes_error(self) -> None:
+        """Test a ``ValueError`` is raised for negative processes"""
+
+        node = TestNode(num_processes=4)
+        with self.assertRaises(ValueError):
+            node.set_num_processes(-1)
+
+    def test_zero_processes_error(self) -> None:
+        """Test a ``ValueError`` is raised for zero processes"""
+
+        node = TestNode(num_processes=4)
+        with self.assertRaises(ValueError):
+            node.set_num_processes(0)

@@ -47,12 +47,12 @@ class Node(abc.ABC):
             ):
                 yield attr_value
 
-    def get_processes_count(self) -> int:
+    def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
 
         return self._engine.get_num_processes()
 
-    def set_processes_count(self, val) -> None:
+    def set_num_processes(self, val) -> None:
         """Update the number of processes assigned to the analysis node"""
 
         self._engine.set_num_processes(val)
