@@ -23,7 +23,7 @@ class MultiprocessingEngine:
         self._locked = False
         self.set_num_processes(num_processes)
 
-    def _wrap_target(self) -> None:
+    def _wrap_target(self) -> None:  # pragma: nocover - called from child process
         """Wrapper method for calling the target function and updating process status"""
 
         self._target()
@@ -56,7 +56,7 @@ class MultiprocessingEngine:
         if num_processes <= 0:
             raise ValueError('Number of processes must be greater than zero')
 
-        self._processes = [mp.Process(target=self._wrap_target()) for _ in range(num_processes)]
+        self._processes = [mp.Process(target=self._wrap_target) for _ in range(num_processes)]
         self._states = mp.Manager().dict({id(p): False for p in self._processes})
 
     def is_finished(self) -> bool:
