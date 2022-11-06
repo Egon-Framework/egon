@@ -88,3 +88,23 @@ class SetNumProcesses(TestCase):
         node = TestNode(num_processes=4)
         with self.assertRaises(ValueError):
             node.set_num_processes(0)
+
+
+class InputConnectors(TestCase):
+    """Test the ``input_connectors`` method"""
+
+    def test_return_includes_connectors(self) -> None:
+        """Test node inputs are returned as a tuple"""
+
+        node = TestNode(num_processes=1)
+        self.assertEqual((node.input1, node.input2), node.input_connectors())
+
+
+class OutputConnectors(TestCase):
+    """Test the ``output_connectors`` method"""
+
+    def test_return_includes_connectors(self) -> None:
+        """Test node outputs are returned as a tuple"""
+
+        node = TestNode(num_processes=1)
+        self.assertEqual((node.output,), node.output_connectors())

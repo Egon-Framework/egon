@@ -39,7 +39,7 @@ class Node(abc.ABC):
         """
 
         class_attributes = dir(self.__class__)
-        for attr_name, attr_value in self.__dict__.values():
+        for attr_name, attr_value in self.__dict__.items():
             if (
                 not attr_name.startswith('_') and  # Skip private attributes/methods
                 attr_name not in class_attributes and  # Skip class attributes/methods
