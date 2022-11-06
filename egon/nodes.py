@@ -183,4 +183,4 @@ class Node(abc.ABC):
     def __str__(self) -> str:
         """Return a string representation of the parent instance"""
 
-        return f'<{self.__class__.__name__}(name={self.name}) object at {self._id}>'
+        return f'<{self.__class__.__name__}(name={self.name}) object at {hex(id(self))}>'
