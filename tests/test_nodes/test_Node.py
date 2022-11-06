@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from egon.connectors import InputConnector, OutputConnector
+from egon.nodes import Inputnode, Outputnode
 from egon.nodes import Node
 
 
@@ -13,9 +13,9 @@ class TestNode(Node):
         """Instantiate a dummy node object with two inputs and a single output"""
 
         super().__init__(num_processes, name)
-        self.input1 = InputConnector(name='input1')
-        self.input2 = InputConnector(name='input2')
-        self.output = OutputConnector(name='output')
+        self.input1 = Inputnode(name='input1')
+        self.input2 = Inputnode(name='input2')
+        self.output = Outputnode(name='output')
 
     def action(self) -> None:
         """Implements required method for abstract parent class"""
@@ -108,3 +108,16 @@ class OutputConnectors(TestCase):
 
         node = TestNode(num_processes=1)
         self.assertEqual((node.output,), node.output_connectors())
+
+
+class StringRepresentation(TestCase):
+    """Test the representation of node instances as strings"""
+
+    def test_string_representation(self) -> None:
+        """Test nodes include name and ID info when cast to a string"""
+
+        node_name = 'my_node'
+        node = TestNode(num_processes=1, name=node_name)
+
+        expected_string = f'<TestNode(name={node_name}) object at {hex(id(node))}>'
+        self.assertEqual(expected_string, str(node))
