@@ -154,11 +154,9 @@ class Node(abc.ABC):
         self.class_teardown()
 
     def is_finished(self) -> bool:
-        """Return whether all node processes have finished processing data
+        """Return whether all node processes have finished processing data"""
 
-        The returned value defaults to ``True`` when the number of child
-        processes attached to the node is zero.
-        """
+        return self._engine.is_finished()
 
     def is_expecting_data(self) -> bool:
         """Return whether the node is still expecting data from upstream nodes
@@ -166,6 +164,20 @@ class Node(abc.ABC):
         This method checks whether any connected, upstream nodes are still
         running and whether there is still data pending in any input connectors.
         """
+
+        # Check for running nodes immediately upstream
+        # These nodes may still be populating the queue
+        for input_connector in self.input_connectors():
+            for output_connector in input_connector.partners:
+                if not output_connector.parent_node.is_finished():
+                    return True
+
+        # Check data still pending in queue
+        for input_connector in self.input_connectors():
+            if not input_connector.empty():
+                return True
+
+        return False
 
     def __str__(self) -> str:
         """Return a string representation of the parent instance"""
