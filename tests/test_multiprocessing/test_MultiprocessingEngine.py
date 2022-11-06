@@ -57,3 +57,33 @@ class SetNumProcesses(TestCase):
         engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
         with self.assertRaises(ValueError):
             engine.set_num_processes(0)
+
+    def test_locked_engine_error(self) -> None:
+        """Test a ``RuntimeError`` is raised when setting processes on a locked engine"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine.run()
+
+        with self.assertRaises(RuntimeError):
+            engine.set_num_processes(2)
+
+
+class Reset(TestCase):
+    """Tests for the ``reset`` method"""
+
+    def test_num_processes_settable(self) -> None:
+        """Test the number of processes becomes settable after execution"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine.run()
+        engine.reset()
+
+        engine.set_num_processes(2)
+        self.assertEqual(2, engine.get_num_processes())
+
+    def test_not_executed_error(self) -> None:
+        """Test a ``RuntimeError`` is raised when calling the method before executing the engine"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        with self.assertRaises(RuntimeError):
+            engine.reset()

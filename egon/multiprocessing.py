@@ -20,10 +20,23 @@ class MultiprocessingEngine:
         self._processes = []  # Collection of processes managed by the parent instance
         self._states = mp.Manager().dict()  # Map process memory id to execution state
 
+        self._locked = False
         self.set_num_processes(num_processes)
+
+    def _wrap_target(self) -> None:
+        """Wrapper method for calling the target function and updating process status"""
+
+        self._target()
+        self._states[id(mp.current_process())] = True
 
     def reset(self) -> None:
         """Reset the engine instance so it can be reused"""
+
+        if not self.is_finished():
+            raise RuntimeError('Some processes have not finished executing')
+
+        self._locked = False
+        self.set_num_processes(self.get_num_processes())
 
     def get_num_processes(self) -> int:
         """Return the number of processes assigned to the pool"""
@@ -37,11 +50,14 @@ class MultiprocessingEngine:
             num_processes: The number of processes to allocate
         """
 
+        if self._locked:
+            raise RuntimeError('Cannot modify the number of processes once an engine has been started')
+
         if num_processes <= 0:
             raise ValueError('Number of processes must be greater than zero')
 
-        self._processes = [mp.Process(target=self._target) for _ in range(num_processes)]
-        self._states.update({id(p): False for p in self._processes})
+        self._processes = [mp.Process(target=self._wrap_target()) for _ in range(num_processes)]
+        self._states = mp.Manager().dict({id(p): False for p in self._processes})
 
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
@@ -57,6 +73,7 @@ class MultiprocessingEngine:
     def run_async(self) -> None:
         """Start all processes and join them to the current process"""
 
+        self._locked = True
         for p in self._processes:
             p.start()
 
