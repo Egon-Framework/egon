@@ -32,7 +32,7 @@ class BaseConnector:
 
         # Identifying information for the instance
         self._id = hex(id(self))
-        self.name = str(self._id) if name is None else name
+        self.name = str(name) if name else str(self._id)
 
         # The parent node
         self._node = None
