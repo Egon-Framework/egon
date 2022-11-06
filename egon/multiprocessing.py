@@ -46,14 +46,28 @@ class MultiprocessingEngine:
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
 
+        return all(self._states.values())
+
     def run(self) -> None:
         """Start all processes asynchronously"""
+
+        self.run_async()
+        self.join()
 
     def run_async(self) -> None:
         """Start all processes and join them to the current process"""
 
+        for p in self._processes:
+            p.start()
+
     def join(self) -> None:
         """Wait for any running processes to exit before continuing execution"""
 
+        for p in self._processes:
+            p.join()
+
     def kill(self) -> None:
         """Kill all running processes without attempting to exit gracefully"""
+
+        for p in self._processes:
+            p.kill()
