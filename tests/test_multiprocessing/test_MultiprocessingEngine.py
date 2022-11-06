@@ -1,4 +1,5 @@
 """Tests for the ``multiprocessing`` module"""
+
 from time import sleep
 from unittest import TestCase
 
@@ -69,7 +70,7 @@ class SetNumProcesses(TestCase):
 
 
 class Reset(TestCase):
-    """Tests for the ``reset`` method"""
+    """Test the ``reset`` method"""
 
     def test_num_processes_settable(self) -> None:
         """Test the number of processes becomes settable after execution"""
@@ -90,7 +91,7 @@ class Reset(TestCase):
 
 
 class Kill(TestCase):
-    """Tests the termination of processes via the ``kill`` method"""
+    """Test the termination of processes via the ``kill`` method"""
 
     def test_marked_as_finished(self) -> None:
         """Test the engine registers as finished after killing any processes"""
