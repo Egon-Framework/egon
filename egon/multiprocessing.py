@@ -88,3 +88,4 @@ class MultiprocessingEngine:
 
         for p in self._processes:
             p.kill()
+            self._states[id(p)] = True

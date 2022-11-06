@@ -1,5 +1,5 @@
 """Tests for the ``multiprocessing`` module"""
-
+from time import sleep
 from unittest import TestCase
 
 from egon.multiprocessing import MultiprocessingEngine
@@ -87,3 +87,26 @@ class Reset(TestCase):
         engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
         with self.assertRaises(RuntimeError):
             engine.reset()
+
+
+class Kill(TestCase):
+    """Tests the termination of processes via the ``kill`` method"""
+
+    def test_marked_as_finished(self) -> None:
+        """Test the engine registers as finished after killing any processes"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine.run_async()
+        engine.kill()
+        self.assertTrue(engine.is_finished())
+
+    def test_processes_are_killed(self) -> None:
+        """Test all child processes are killed"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine.run_async()
+        engine.kill()
+
+        sleep(2)  # Wait for processes to close out before testing them
+        for proc in engine._processes:
+            self.assertFalse(proc.is_alive())
