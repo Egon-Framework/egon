@@ -9,6 +9,7 @@ from typing import Iterable, Tuple
 
 from .connectors import InputConnector, OutputConnector
 from .exceptions import NodeValidationError
+from .multiprocessing import MultiprocessingEngine
 
 
 class Node(abc.ABC):
