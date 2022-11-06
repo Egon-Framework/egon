@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import multiprocessing as mp
+
 
 class MultiprocessingEngine:
     """A processes pool for executing callable objects in parallel"""
@@ -14,18 +16,32 @@ class MultiprocessingEngine:
             target: The callable object to be executed in parallel
         """
 
+        self._target = target
+        self._processes = []  # Collection of processes managed by the parent instance
+        self._states = mp.Manager().dict()  # Map process memory id to execution state
+
+        self.set_num_processes(num_processes)
+
     def reset(self) -> None:
         """Reset the engine instance so it can be reused"""
 
     def get_num_processes(self) -> int:
         """Return the number of processes assigned to the pool"""
 
-    def set_num_processes(self, val: int) -> int:
+        return len(self._processes)
+
+    def set_num_processes(self, num_processes: int) -> None:
         """Modify the number of processes assigned to the pool
 
         Args:
-            val: The number of processes to allocate
+            num_processes: The number of processes to allocate
         """
+
+        if num_processes <= 0:
+            raise ValueError('Number of processes must be greater than zero')
+
+        self._processes = [mp.Process(target=self._target) for _ in range(num_processes)]
+        self._states.update({id(p): False for p in self._processes})
 
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
