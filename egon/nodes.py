@@ -24,7 +24,7 @@ class Node(abc.ABC):
         """
 
         self.name = name or self.__class__.__name__
-        self._engine = MultiprocessingEngine(num_processes)
+        self._engine = MultiprocessingEngine(num_processes, self._execute_helper)
 
     def _iter_attrs_by_type(self, attr_type) -> Iterable:
         """Return an iterable over instance attributes matching the given type
@@ -50,12 +50,12 @@ class Node(abc.ABC):
     def get_processes_count(self) -> int:
         """Return number of processes assigned to the analysis node"""
 
-        return self._engine.get_processes_count()
+        return self._engine.get_num_processes()
 
     def set_processes_count(self, val) -> None:
         """Update the number of processes assigned to the analysis node"""
 
-        self._engine.set_processes_count(val)
+        self._engine.set_num_processes(val)
 
     def input_connectors(self) -> Tuple[InputConnector, ...]:
         """Return a collection of input connectors attached to this node"""
@@ -151,7 +151,7 @@ class Node(abc.ABC):
         """Execute the pipeline node, including all setup and teardown tasks"""
 
         self.class_setup()
-        self._engine.launch(self._execute_helper)
+        self._engine.run()
         self.class_teardown()
 
     def is_finished(self) -> bool:
