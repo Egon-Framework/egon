@@ -7,6 +7,25 @@ from egon.connectors import InputConnector
 from egon.exceptions import MissingConnectionError
 
 
+class MaxSizeValidation(TestCase):
+    """Test errors are raised for invalid ``maxsize`` arguments at init"""
+
+    def test_negative_error(self) -> None:
+        with self.assertRaises(ValueError):
+            InputConnector(maxsize=-1)
+
+        with self.assertRaises(ValueError):
+            InputConnector(maxsize=-1.4)
+
+    def test_float_error(self) -> None:
+        with self.assertRaises(ValueError):
+            InputConnector(maxsize=1.3)
+
+    def test_zero_allowed(self) -> None:
+        connector = InputConnector(maxsize=0)
+        self.assertEqual(0, connector.maxsize)
+
+
 class QueueProperties(TestCase):
     """Test queue properties are properly exposed by the ``InputConnector`` class"""
 
@@ -45,6 +64,12 @@ class QueueProperties(TestCase):
 
         connector.get(1)
         self.assertTrue(connector.empty())
+
+    def test_max_size(self) -> None:
+        """Test the ``maxsize`` attribute returns the maximum queue size"""
+
+        connector = InputConnector(maxsize=1)
+        self.assertEqual(1, connector.maxsize)
 
 
 # TODO: Test behavior in relation to parent nodes

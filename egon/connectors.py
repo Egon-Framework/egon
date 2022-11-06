@@ -70,8 +70,10 @@ class InputConnector(BaseConnector):
     the built-in ``multiprocessing.Queue`` class.
     """
 
-    def __init__(self, name: str = None, maxsize: int = None) -> None:
+    def __init__(self, name: str = None, maxsize: int = 0) -> None:
         """Create a new input connector
+
+        By default, the input object has no maximum size and can grow unbounded.
 
         Args:
             name: Set a descriptive name for the connector object
@@ -79,7 +81,13 @@ class InputConnector(BaseConnector):
         """
 
         super().__init__(name)
-        self._queue = mp.Manager().Queue(maxsize=maxsize or 0)
+
+        maxsize = maxsize or 0
+        if not isinstance(maxsize, int) or maxsize < 0:
+            raise ValueError('Maximum queue size must be a non-negative integer')
+
+        self._maxsize = maxsize
+        self._queue = mp.Manager().Queue(maxsize=maxsize)
 
     def empty(self) -> bool:
         """Return whether the connector is empty"""
@@ -100,7 +108,7 @@ class InputConnector(BaseConnector):
     def maxsize(self) -> Optional[int]:
         """The maximum number of objects to store in the connector at once"""
 
-        return self._queue.maxsize
+        return self._maxsize
 
     def _put(self, item: Any) -> None:
         """Add an item to the connector
