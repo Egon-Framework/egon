@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from egon.nodes import Inputnode, Outputnode
+from egon.connectors import InputConnector, OutputConnector
 from egon.nodes import Node
 
 
@@ -13,9 +13,9 @@ class TestNode(Node):
         """Instantiate a dummy node object with two inputs and a single output"""
 
         super().__init__(num_processes, name)
-        self.input1 = Inputnode(name='input1')
-        self.input2 = Inputnode(name='input2')
-        self.output = Outputnode(name='output')
+        self.input1 = InputConnector(name='input1')
+        self.input2 = InputConnector(name='input2')
+        self.output = OutputConnector(name='output')
 
     def action(self) -> None:
         """Implements required method for abstract parent class"""
