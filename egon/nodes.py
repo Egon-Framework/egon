@@ -5,7 +5,7 @@ pipeline.
 from __future__ import annotations
 
 import abc
-from typing import Iterable, Tuple
+from typing import Tuple
 
 from .connectors import InputConnector, OutputConnector
 from .exceptions import NodeValidationError
@@ -25,27 +25,8 @@ class Node(abc.ABC):
 
         self.name = name or self.__class__.__name__
         self._engine = MultiprocessingEngine(num_processes, self._execute_helper)
-
-    def _iter_attrs_by_type(self, attr_type) -> Iterable:
-        """Return an iterable over instance attributes matching the given type
-
-        All private and class methods/attributes are ignored.
-
-        Args:
-            attr_type: The object type to include in the iterator
-
-        Returns:
-            An iterable over attributes of the given type
-        """
-
-        class_attributes = dir(self.__class__)
-        for attr_name, attr_value in self.__dict__.items():
-            if (
-                not attr_name.startswith('_') and  # Skip private attributes/methods
-                attr_name not in class_attributes and  # Skip class attributes/methods
-                isinstance(attr_value, attr_type)  # Only yield the correct type
-            ):
-                yield attr_value
+        self._inputs = []
+        self._outputs = []
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
@@ -57,29 +38,54 @@ class Node(abc.ABC):
 
         self._engine.set_num_processes(val)
 
+    def create_input(self, name: str, maxsize: int) -> InputConnector:
+        """Create a new input connector and attach it to the current node
+
+        Args:
+            name: Set a descriptive name for the connector object
+            maxsize: The maximum number of items to store in the connector at once
+
+        Returns:
+            An input connector attached to this node instance
+        """
+
+        connector = InputConnector(parent_node=self, name=name, maxsize=maxsize)
+        self._inputs.append(connector)
+        return connector
+
+    def create_output(self, name: str) -> OutputConnector:
+        """Create a new output connector and attach it to the current node
+
+        Args:
+            name: Set a descriptive name for the connector object
+
+        Returns:
+            An output connector attached to this node instance
+        """
+
+        connector = OutputConnector(parent_node=self, name=name)
+        self._outputs.append(connector)
+        return connector
+
     def input_connectors(self) -> Tuple[InputConnector, ...]:
         """Return a collection of input connectors attached to this node"""
 
-        return tuple(self._iter_attrs_by_type(InputConnector))
+        return tuple(self._inputs)
 
     def output_connectors(self) -> Tuple[OutputConnector, ...]:
         """Return a collection of output connectors attached to this node"""
 
-        return tuple(self._iter_attrs_by_type(OutputConnector))
+        return tuple(self._outputs)
 
-    @property
     def upstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of upstream nodes connected to the current node"""
 
-        input_connectors = self._iter_attrs_by_type(InputConnector)
-        return tuple(connector.parent_node for connector in input_connectors)
+        return tuple(connector.parent_node for connector in self._inputs)
 
-    @property
     def downstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of downstream nodes connected to the current node"""
 
-        output_connectors = self._iter_attrs_by_type(OutputConnector)
-        return tuple(connector.parent_node for connector in output_connectors)
+        return tuple(connector.parent_node for connector in self._outputs)
 
     def validate(self) -> None:
         """Validate the current node has no obvious connection issues
@@ -88,11 +94,11 @@ class Node(abc.ABC):
             NodeValidationError: If the node does not validate properly
         """
 
-        for connector in self._iter_attrs_by_type(InputConnector):
+        for connector in self._inputs:
             if not connector.is_connected():
                 raise NodeValidationError(f'Node has an unconnected input named {connector.name}')
 
-        for connector in self._iter_attrs_by_type(OutputConnector):
+        for connector in self._outputs:
             if not connector.is_connected():
                 raise NodeValidationError(f'Node has an unconnected output named {connector.name}')
 

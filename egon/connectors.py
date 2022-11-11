@@ -23,13 +23,14 @@ if TYPE_CHECKING:
 class BaseConnector:
     """Base class for building signal/slot style connectors on top of an underlying queue"""
 
-    def __init__(self, name: str = None) -> None:
+    def __init__(self, parent_node: Node = None, name: str = None) -> None:
         """Queue-like object for passing data between nodes
 
         By default, connector names are generated using the instance's memory
         identifier in hexadecimal representation.
 
         Args:
+            parent_node: The node instance this connector is attached to
             name: Set a descriptive name for the connector object
         """
 
@@ -38,7 +39,7 @@ class BaseConnector:
         self.name = str(name) if name else str(self._id)
 
         # The parent node
-        self._node = None
+        self._parent_node = parent_node
 
         # Other connector objects connected to this instance
         self._connected_partners: Set[BaseConnector] = set()
@@ -47,7 +48,7 @@ class BaseConnector:
     def parent_node(self) -> Optional[Node]:
         """The parent node this connector is assigned to"""
 
-        return self._node
+        return self._parent_node
 
     @property
     def partners(self) -> Tuple[BaseConnector]:
@@ -73,17 +74,18 @@ class InputConnector(BaseConnector):
     the built-in ``multiprocessing.Queue`` class.
     """
 
-    def __init__(self, name: str = None, maxsize: int = 0) -> None:
+    def __init__(self, parent_node: Node = None, name: str = None, maxsize: int = 0) -> None:
         """Create a new input connector
 
         By default, the input object has no maximum size and can grow unbounded.
 
         Args:
+            parent_node: The node instance this connector is attached to
             name: Set a descriptive name for the connector object
             maxsize: The maximum number of items to store in the connector at once
         """
 
-        super().__init__(name)
+        super().__init__(parent_node=parent_node, name=name)
 
         maxsize = maxsize or 0
         if not isinstance(maxsize, int) or maxsize < 0:

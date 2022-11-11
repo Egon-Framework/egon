@@ -21,6 +21,11 @@ class NameAssignment(TestCase):
         self.assertEqual('test_name', connector.name)
 
 
+# TODO
+class ParentNode(TestCase):
+    """Test the parent node is exposed by the ``parent_node`` attribute"""
+
+
 class StringRepresentation(TestCase):
     """Test the representation of connector instances as strings"""
 
@@ -28,7 +33,7 @@ class StringRepresentation(TestCase):
         """Test connectors include name and ID info when cast to a string"""
 
         connector_name = 'my_connector'
-        connector = BaseConnector(connector_name)
+        connector = BaseConnector(name=connector_name)
 
         expected_string = f'<BaseConnector(name={connector_name}) object at {hex(id(connector))}>'
         self.assertEqual(expected_string, str(connector))
