@@ -5,6 +5,9 @@ from unittest import TestCase
 from egon.nodes import Node
 
 
+# Todo:
+# - Test duplicate connections do not propagate in returned nodes
+
 class TestNode(Node):
     """Dummy node object for running tests"""
 
@@ -180,12 +183,34 @@ class UpstreamNodes(TestCase):
 
         # Check both upstream nodes are returned by the downstream node
         self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
-        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
 
     def test_empty_for_no_upstream(self) -> None:
         """Test the return value is empty when no upstream nodes are connected"""
 
         self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
+
+
+class DownstreamNodes(TestCase):
+    """Test the ``downstream_nodes`` method"""
+
+    def test_multiple_downstream_nodes(self) -> None:
+        """Test all downstream nodes are returned"""
+
+        # Connect a single upstream node to two downstream nodes
+        upstream = TestNode(num_processes=1, name='upstream')
+        downstream1 = TestNode(num_processes=1, name='downstream1')
+        downstream2 = TestNode(num_processes=1, name='downstream2')
+
+        upstream.create_output().connect(downstream1.create_input())
+        upstream.create_output().connect(downstream2.create_input())
+
+        # Check both downstream nodes are returned by the upstream node
+        self.assertEqual((downstream1, downstream2), upstream.downstream_nodes())
+
+    def test_empty_for_no_downstream(self) -> None:
+        """Test the return value is empty when no downstream nodes are connected"""
+
+        self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
 
 
 class StringRepresentation(TestCase):
