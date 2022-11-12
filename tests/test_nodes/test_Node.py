@@ -2,6 +2,7 @@
 
 from unittest import TestCase
 
+from egon.exceptions import NodeValidationError
 from egon.nodes import Node
 
 
@@ -211,6 +212,44 @@ class DownstreamNodes(TestCase):
         """Test the return value is empty when no downstream nodes are connected"""
 
         self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
+
+
+class Validate(TestCase):
+    """Test the ``validate`` method"""
+
+    def test_no_connector_error(self):
+        """Test a ``NodeValidationError`` is raised for nodes without any connectors"""
+
+        with self.assertRaisesRegex(NodeValidationError, 'Node has no input or output connectors'):
+            TestNode(num_processes=1).validate()
+
+    def test_unconnected_input_error(self):
+        """Test a ``NodeValidationError`` is raised for nodes with unconnected inputs"""
+
+        node = TestNode(num_processes=1)
+        node.create_input()
+
+        with self.assertRaisesRegex(NodeValidationError, 'Node has an unconnected input'):
+            node.validate()
+
+    def test_unconnected_output_error(self):
+        """Test a ``NodeValidationError`` is raised for nodes with unconnected outputs"""
+
+        node = TestNode(num_processes=1)
+        node.create_output()
+
+        with self.assertRaisesRegex(NodeValidationError, 'Node has an unconnected output'):
+            node.validate()
+
+    @staticmethod
+    def test_valid_nodes_validate() -> None:
+        """Test connected nodes validate successfully"""
+
+        node1 = TestNode(num_processes=1)
+        node2 = TestNode(num_processes=1)
+        node1.create_output().connect(node2.create_input())
+        node1.validate()
+        node2.validate()
 
 
 class StringRepresentation(TestCase):

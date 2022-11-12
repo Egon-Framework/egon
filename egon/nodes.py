@@ -95,7 +95,7 @@ class Node(abc.ABC):
         """
 
         if not (self._inputs or self._outputs):
-            raise NodeValidationError(f'Node has no input or output connectors')
+            raise NodeValidationError('Node has no input or output connectors')
 
         for connector in self._inputs:
             if not connector.is_connected():
