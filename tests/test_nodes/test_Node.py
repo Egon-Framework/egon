@@ -1,5 +1,5 @@
 """Tests for the ``Node`` class."""
-
+from time import sleep
 from unittest import TestCase
 
 from egon.exceptions import NodeValidationError
@@ -273,6 +273,38 @@ class Validate(TestCase):
         node1.create_output().connect(node2.create_input())
         node1.validate()
         node2.validate()
+
+
+class IsFinished(TestCase):
+    """Test the ``is_finished`` method"""
+
+    def test_false_before_execution(self) -> None:
+        """Test the return value is ``False`` before execution"""
+
+        self.assertFalse(TestNode(num_processes=1).is_finished())
+
+    def test_false_while_is_running(self) -> None:
+        """Test the return value is ``False`` while the node is running"""
+
+        class SleepNode(Node):
+            """A node that sleeps for 10 seconds"""
+
+            def action(self) -> None:
+                """Sleep for 10 seconds"""
+
+                sleep(5)
+
+        node = SleepNode(num_processes=1)
+        node.execute()
+        self.assertFalse(node.is_finished())
+        sleep(10)  # ive child processes time to exit
+
+    def test_true_after_execution(self) -> None:
+        """Test the return value is ``True`` after execution finishes"""
+
+        node = TestNode(num_processes=1)
+        node.execute()
+        self.assertFalse(node.is_finished())
 
 
 class IsExpectingData(TestCase):
