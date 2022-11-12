@@ -80,12 +80,12 @@ class Node(abc.ABC):
     def upstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of upstream nodes connected to the current node"""
 
-        return tuple(connector.parent_node for connector in self._inputs)
+        return tuple(p.parent_node for c in self._inputs for p in c.partners)
 
     def downstream_nodes(self) -> Tuple[Node, ...]:
         """Return a list of downstream nodes connected to the current node"""
 
-        return tuple(connector.parent_node for connector in self._outputs)
+        return tuple(p.parent_node for c in self._outputs for p in c.partners)
 
     def validate(self) -> None:
         """Validate the current node has no obvious connection issues
@@ -93,6 +93,9 @@ class Node(abc.ABC):
         Raises:
             NodeValidationError: If the node does not validate properly
         """
+
+        if not (self._inputs or self._outputs):
+            raise NodeValidationError(f'Node has no input or output connectors')
 
         for connector in self._inputs:
             if not connector.is_connected():
