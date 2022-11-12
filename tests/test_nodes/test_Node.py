@@ -1,4 +1,5 @@
 """Tests for the ``Node`` class."""
+
 from time import sleep
 from unittest import TestCase
 
@@ -180,7 +181,7 @@ class UpstreamNodes(TestCase):
         upstream2.create_output().connect(downstream.create_input())
 
         # Check both upstream nodes are returned by the downstream node
-        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
+        self.assertCountEqual((upstream1, upstream2), downstream.upstream_nodes())
 
     def test_empty_for_no_upstream(self) -> None:
         """Test the return value is empty when no upstream nodes are connected"""
@@ -198,7 +199,7 @@ class UpstreamNodes(TestCase):
         upstream1.create_output().connect(downstream_input)
         upstream2.create_output().connect(downstream_input)
 
-        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
+        self.assertCountEqual((upstream1, upstream2), downstream.upstream_nodes())
 
 
 class DownstreamNodes(TestCase):
@@ -216,7 +217,7 @@ class DownstreamNodes(TestCase):
         upstream.create_output().connect(downstream2.create_input())
 
         # Check both downstream nodes are returned by the upstream node
-        self.assertEqual((downstream1, downstream2), upstream.downstream_nodes())
+        self.assertCountEqual((downstream1, downstream2), upstream.downstream_nodes())
 
     def test_empty_for_no_downstream(self) -> None:
         """Test the return value is empty when no downstream nodes are connected"""
@@ -234,7 +235,7 @@ class DownstreamNodes(TestCase):
         upstream_output.connect(downstream1.create_input())
         upstream_output.connect(downstream2.create_input())
 
-        self.assertEqual((downstream1, downstream2), upstream.downstream_nodes())
+        self.assertCountEqual((downstream1, downstream2), upstream.downstream_nodes())
 
 
 class Validate(TestCase):
