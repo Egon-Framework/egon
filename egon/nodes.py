@@ -186,7 +186,7 @@ class Node(abc.ABC):
 
         return False
 
-    def __str__(self) -> str:
+    def __repr__(self):
         """Return a string representation of the parent instance"""
 
         return f'<{self.__class__.__name__}(name={self.name}) object at {hex(id(self))}>'

@@ -150,6 +150,40 @@ class OutputConnectors(TestCase):
         self.assertEqual((node.output1, node.output2), node.output_connectors())
 
 
+class UpstreamNodes(TestCase):
+
+    def test_upstream_node_is_returned(self) -> None:
+        # Connect a single upstream node to two downstream nodes
+        upstream = TestNode(num_processes=1, name='upstream')
+        downstream1 = TestNode(num_processes=1, name='downstream1')
+        downstream2 = TestNode(num_processes=1, name='downstream2')
+
+        upstream.create_output().connect(downstream1.create_input())
+        upstream.create_output().connect(downstream2.create_input())
+
+        # Check both downstream nodes point at the same upstream node
+        self.assertEqual((upstream,), downstream1.upstream_nodes())
+        self.assertEqual((upstream,), downstream2.upstream_nodes())
+
+    def test_multiple_upstream_nodes(self) -> None:
+        # Connect two upstream nodes to a single downstream node
+        upstream1 = TestNode(num_processes=1, name='upstream1')
+        upstream2 = TestNode(num_processes=1, name='upstream2')
+        downstream = TestNode(num_processes=1, name='downstream')
+
+        upstream1.create_output().connect(downstream.create_input())
+        upstream2.create_output().connect(downstream.create_input())
+
+        # Check both upstream nodes are returned by the downstream node
+        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
+        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
+
+    def test_empty_for_no_upstream(self) -> None:
+        """Test the return value is empty when no upstream nodes are connected"""
+
+        self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
+
+
 class StringRepresentation(TestCase):
     """Test the representation of node instances as strings"""
 
