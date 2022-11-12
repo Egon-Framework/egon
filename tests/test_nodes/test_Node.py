@@ -6,9 +6,6 @@ from egon.exceptions import NodeValidationError
 from egon.nodes import Node
 
 
-# Todo:
-# - Test duplicate connections do not propagate in returned nodes
-
 class TestNode(Node):
     """Dummy node object for running tests"""
 
@@ -190,6 +187,19 @@ class UpstreamNodes(TestCase):
 
         self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
 
+    def test_no_duplicates_returned(self) -> None:
+        """Test nodes that share an input connector are each only returned once"""
+
+        upstream1 = TestNode(num_processes=1, name='upstream1')
+        upstream2 = TestNode(num_processes=1, name='upstream2')
+        downstream = TestNode(num_processes=1, name='downstream')
+
+        downstream_input = downstream.create_input()
+        upstream1.create_output().connect(downstream_input)
+        upstream2.create_output().connect(downstream_input)
+
+        self.assertEqual((upstream1, upstream2), downstream.upstream_nodes())
+
 
 class DownstreamNodes(TestCase):
     """Test the ``downstream_nodes`` method"""
@@ -212,6 +222,19 @@ class DownstreamNodes(TestCase):
         """Test the return value is empty when no downstream nodes are connected"""
 
         self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
+
+    def test_no_duplicates_returned(self) -> None:
+        """Test nodes that share an output connector are each only returned once"""
+
+        upstream = TestNode(num_processes=1, name='upstream')
+        downstream1 = TestNode(num_processes=1, name='downstream1')
+        downstream2 = TestNode(num_processes=1, name='downstream2')
+
+        upstream_output = upstream.create_output()
+        upstream_output.connect(downstream1.create_input())
+        upstream_output.connect(downstream2.create_input())
+
+        self.assertEqual((downstream1, downstream2), upstream.downstream_nodes())
 
 
 class Validate(TestCase):
