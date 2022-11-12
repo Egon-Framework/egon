@@ -275,6 +275,76 @@ class Validate(TestCase):
         node2.validate()
 
 
+class IsExpectingData(TestCase):
+    """Tests the ``is_expecting_data`` method"""
+
+    def setUp(self) -> None:
+        """Create and connect two upstream nodes to a single downstream"""
+
+        # Create upstream nodes each with a single output
+        self.upstream1 = TestNode(num_processes=1)
+        self.upstream2 = TestNode(num_processes=1)
+        self.upstream1.output = self.upstream1.create_output()
+        self.upstream2.output = self.upstream2.create_output()
+
+        # Create a downstream node with a single input
+        self.downstream = TestNode(num_processes=1)
+        self.downstream.input = self.downstream.create_input()
+
+        # Connect the nodes together
+        self.upstream1.output.connect(self.downstream.input)
+        self.upstream2.output.connect(self.downstream.input)
+
+    def test_empty_input_and_finished_upstream(self) -> None:
+        """Test the node is not expecting data when:
+            - The input connector is empty
+            - The upstream nodes are finished running
+        """
+
+        self.upstream1.execute()
+        self.upstream2.execute()
+        self.assertFalse(self.downstream.is_expecting_data())
+
+    def test_empty_parent_and_running_upstream(self) -> None:
+        """Test the node is expecting data when:
+            - The input connector is empty
+            - The upstream nodes are still running
+        """
+
+        # Check return when all upstream nodes are still running
+        self.assertTrue(self.downstream.is_expecting_data())
+
+        # Check return when only some upstream nodes are still running
+        self.upstream1.execute()
+        self.assertTrue(self.downstream.is_expecting_data())
+
+    def test_full_input_and_finished_upstream(self) -> None:
+        """Test the node is expecting data when:
+            - The input connector is populated
+            - The upstream nodes are finished running
+        """
+
+        self.upstream1.execute()
+        self.upstream2.execute()
+        self.downstream.input._put(5)
+        self.assertTrue(self.downstream.is_expecting_data())
+
+    def test_full_input_and_running_upstream(self) -> None:
+        """Test the node is expecting data when:
+            - The input connector is populated
+            - The upstream nodes are still running
+        """
+
+        # Check return when all upstream nodes are still running
+        self.downstream.input._put(5)
+        self.assertTrue(self.downstream.is_expecting_data())
+
+        # Check return when only some upstream nodes are still running
+        self.downstream.input._put(5)
+        self.upstream1.execute()
+        self.assertTrue(self.downstream.is_expecting_data())
+
+
 class StringRepresentation(TestCase):
     """Test the representation of node instances as strings"""
 
