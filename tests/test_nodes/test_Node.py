@@ -2,7 +2,14 @@
 
 from unittest import TestCase
 
-from ._dummy_nodes import TestNode
+from egon.nodes import Node
+
+
+class TestNode(Node):
+    """Dummy node object for running tests"""
+
+    def action(self):
+        """"""
 
 
 class NameAssignment(TestCase):
@@ -74,6 +81,49 @@ class SetNumProcesses(TestCase):
             node.set_num_processes(0)
 
 
+class CreateInput(TestCase):
+    """Test the ``create_input`` method"""
+
+    def test_parent_node_assignment(self) -> None:
+        """Test the node is attached to the connector as a parent"""
+
+        node = TestNode(num_processes=1)
+        connector = node.create_input()
+        self.assertIs(node, connector.parent_node)
+
+    def test_name_assignment(self) -> None:
+        """Test the connector is created with the given name"""
+
+        node = TestNode(num_processes=1)
+        connector = node.create_input('test-name')
+        self.assertIs('test-name', connector.name)
+
+    def test_size_assignment(self) -> None:
+        """Test the connector is created with the given maximum size"""
+
+        node = TestNode(num_processes=1)
+        connector = node.create_input(maxsize=15)
+        self.assertIs(15, connector.maxsize)
+
+
+class CreateOutput(TestCase):
+    """Test the ``create_output`` method"""
+
+    def test_parent_node_assignment(self) -> None:
+        """Test the node is attached to the connector as a parent"""
+
+        node = TestNode(num_processes=1)
+        connector = node.create_output()
+        self.assertIs(node, connector.parent_node)
+
+    def test_name_assignment(self) -> None:
+        """Test the connector is created with the given name"""
+
+        node = TestNode(num_processes=1)
+        connector = node.create_output('test-name')
+        self.assertIs('test-name', connector.name)
+
+
 class InputConnectors(TestCase):
     """Test the ``input_connectors`` method"""
 
@@ -81,6 +131,9 @@ class InputConnectors(TestCase):
         """Test node inputs are returned as a tuple"""
 
         node = TestNode(num_processes=1)
+        node.input1 = node.create_input()
+        node.input2 = node.create_input()
+
         self.assertEqual((node.input1, node.input2), node.input_connectors())
 
 
@@ -91,7 +144,10 @@ class OutputConnectors(TestCase):
         """Test node outputs are returned as a tuple"""
 
         node = TestNode(num_processes=1)
-        self.assertEqual((node.output,), node.output_connectors())
+        node.output1 = node.create_output()
+        node.output2 = node.create_output()
+
+        self.assertEqual((node.output1, node.output2), node.output_connectors())
 
 
 class StringRepresentation(TestCase):

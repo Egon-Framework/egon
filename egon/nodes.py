@@ -38,7 +38,7 @@ class Node(abc.ABC):
 
         self._engine.set_num_processes(val)
 
-    def create_input(self, name: str, maxsize: int) -> InputConnector:
+    def create_input(self, name: str = None, maxsize: int = 0) -> InputConnector:
         """Create a new input connector and attach it to the current node
 
         Args:
@@ -53,7 +53,7 @@ class Node(abc.ABC):
         self._inputs.append(connector)
         return connector
 
-    def create_output(self, name: str) -> OutputConnector:
+    def create_output(self, name: str = None) -> OutputConnector:
         """Create a new output connector and attach it to the current node
 
         Args:
