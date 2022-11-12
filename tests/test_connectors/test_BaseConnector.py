@@ -3,6 +3,14 @@
 from unittest import TestCase
 
 from egon.connectors import BaseConnector
+from egon.nodes import Node
+
+
+class TestNode(Node):
+    """Dummy node object for running tests"""
+
+    def action(self):
+        """"""
 
 
 class NameAssignment(TestCase):
@@ -21,9 +29,15 @@ class NameAssignment(TestCase):
         self.assertEqual('test_name', connector.name)
 
 
-# TODO
 class ParentNode(TestCase):
-    """Test the parent node is exposed by the ``parent_node`` attribute"""
+    """Test the ``parent_node`` attribute"""
+
+    def test_parent_node_returned(self) -> None:
+        """Test the parent node is returned by the ``parent_node`` attribute"""
+
+        node = TestNode(num_processes=1)
+        connector = BaseConnector(parent_node=node)
+        self.assertIs(node, connector.parent_node)
 
 
 class StringRepresentation(TestCase):

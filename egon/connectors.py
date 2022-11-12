@@ -16,7 +16,7 @@ from typing import Any, Optional, Set, TYPE_CHECKING, Tuple
 
 from egon.exceptions import MissingConnectionError
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: nocover
     from .nodes import Node
 
 
