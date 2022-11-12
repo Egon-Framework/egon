@@ -224,3 +224,9 @@ class StringRepresentation(TestCase):
 
         expected_string = f'<TestNode(name={node_name}) object at {hex(id(node))}>'
         self.assertEqual(expected_string, str(node))
+
+    def test_repr_matches_string(self) -> None:
+        """Test nodes include name and ID info when cast to a string"""
+
+        node = TestNode(num_processes=1, name='my_node')
+        self.assertEqual(repr(node), str(node))
