@@ -36,13 +36,13 @@ class ProcessAllocation(TestCase):
         node = TestNode(num_processes=4)
         self.assertEqual(4, node.get_num_processes())
 
-    def test_negative_processes_error(self) -> None:
+    def test_negative_process_error(self) -> None:
         """Test a ``ValueError`` is raised for negative processes"""
 
         with self.assertRaises(ValueError):
             TestNode(num_processes=-1)
 
-    def test_zero_processes_error(self) -> None:
+    def test_zero_process_error(self) -> None:
         """Test a ``ValueError`` is raised for zero processes"""
 
         with self.assertRaises(ValueError):
@@ -127,45 +127,49 @@ class CreateOutput(TestCase):
 class InputConnectors(TestCase):
     """Test the ``input_connectors`` method"""
 
-    def test_return_includes_connectors(self) -> None:
+    def test_returns_all_inputs(self) -> None:
         """Test node inputs are returned as a tuple"""
 
         node = TestNode(num_processes=1)
         node.input1 = node.create_input()
         node.input2 = node.create_input()
+        node.output = node.create_output()
 
         self.assertEqual((node.input1, node.input2), node.input_connectors())
+
+    def test_no_inputs_returns_empty(self) -> None:
+        """Test the return value is empty for nodes with no inputs"""
+
+        node = TestNode(num_processes=1)
+        self.assertEqual(tuple(), node.input_connectors())
 
 
 class OutputConnectors(TestCase):
     """Test the ``output_connectors`` method"""
 
-    def test_return_includes_connectors(self) -> None:
+    def test_returns_all_outputs(self) -> None:
         """Test node outputs are returned as a tuple"""
 
         node = TestNode(num_processes=1)
+        node.input = node.create_input()
         node.output1 = node.create_output()
         node.output2 = node.create_output()
 
         self.assertEqual((node.output1, node.output2), node.output_connectors())
 
+    def test_no_outputs_returns_empty(self) -> None:
+        """Test the return value is empty for nodes with no outputs"""
+
+        node = TestNode(num_processes=1)
+        self.assertEqual(tuple(), node.output_connectors())
+
 
 class UpstreamNodes(TestCase):
-
-    def test_upstream_node_is_returned(self) -> None:
-        # Connect a single upstream node to two downstream nodes
-        upstream = TestNode(num_processes=1, name='upstream')
-        downstream1 = TestNode(num_processes=1, name='downstream1')
-        downstream2 = TestNode(num_processes=1, name='downstream2')
-
-        upstream.create_output().connect(downstream1.create_input())
-        upstream.create_output().connect(downstream2.create_input())
-
-        # Check both downstream nodes point at the same upstream node
-        self.assertEqual((upstream,), downstream1.upstream_nodes())
-        self.assertEqual((upstream,), downstream2.upstream_nodes())
+    """Test the ``upstream_nodes`` method"""
 
     def test_multiple_upstream_nodes(self) -> None:
+        """Test all upstream nodes are returned"""
+
         # Connect two upstream nodes to a single downstream node
         upstream1 = TestNode(num_processes=1, name='upstream1')
         upstream2 = TestNode(num_processes=1, name='upstream2')
