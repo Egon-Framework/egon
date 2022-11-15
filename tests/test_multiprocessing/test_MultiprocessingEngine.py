@@ -1,5 +1,6 @@
 """Tests for the ``multiprocessing`` module"""
 
+from multiprocessing import Manager, current_process
 from time import sleep
 from unittest import TestCase
 
@@ -137,6 +138,48 @@ class IsFinished(TestCase):
         engine.run()
         engine.reset()
         self.assertFalse(engine.is_finished())
+
+
+class RunAsync(TestCase):
+    """Test the ``run_async`` method"""
+
+    def setUp(self) -> None:
+        """Create an engine instance"""
+
+        self.engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(10))
+
+    def tearDown(self) -> None:
+        """Kill any running child processes"""
+
+        self.engine.kill()
+
+    def test_processes_not_settable(self) -> None:
+        """Test the number of processes is locked upon launch"""
+
+        self.engine.run_async()
+        with self.assertRaises(RuntimeError):
+            self.engine.set_num_processes(1)
+
+    def test_processes_are_launched(self) -> None:
+        """Test child processes are launched by the method"""
+
+        self.engine.run_async()
+        for proc in self.engine._processes:
+            self.assertTrue(proc.is_alive())
+
+
+class Run(TestCase):
+    """Test the ``run`` method"""
+
+    def test_target_is_called(self) -> None:
+        """Test the target function is evaluated in each child process"""
+
+        shared_list = Manager().list()
+        target = lambda: shared_list.append(current_process().pid)
+        engine = MultiprocessingEngine(num_processes=4, target=target)
+        engine.run()
+
+        self.assertEqual(4, len(shared_list))
 
 
 class Kill(TestCase):
