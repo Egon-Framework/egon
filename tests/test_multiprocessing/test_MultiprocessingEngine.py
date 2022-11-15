@@ -12,20 +12,58 @@ class ProcessAllocation(TestCase):
     def test_correct_process_count(self) -> None:
         """Test the process count matches the value passed at init"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         self.assertEqual(4, engine.get_num_processes())
 
     def test_negative_processes_error(self) -> None:
         """Test a ``ValueError`` is raised for negative processes"""
 
         with self.assertRaises(ValueError):
-            MultiprocessingEngine(num_processes=-1, target=lambda: 1)
+            MultiprocessingEngine(num_processes=-1, target=lambda: None)
 
     def test_zero_processes_error(self) -> None:
         """Test a ``ValueError`` is raised for zero processes"""
 
         with self.assertRaises(ValueError):
-            MultiprocessingEngine(num_processes=0, target=lambda: 1)
+            MultiprocessingEngine(num_processes=0, target=lambda: None)
+
+
+class Reset(TestCase):
+    """Test the ``reset`` method"""
+
+    def test_num_processes_settable(self) -> None:
+        """Test the number of processes becomes settable after execution"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
+        engine.run()
+        engine.reset()
+
+        engine.set_num_processes(2)
+        self.assertEqual(2, engine.get_num_processes())
+
+    def test_not_executed_error(self) -> None:
+        """Test a ``RuntimeError`` is raised when calling the method before executing the engine"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
+        with self.assertRaises(RuntimeError):
+            engine.reset()
+
+    @staticmethod
+    def test_becomes_runnable() -> None:
+        """Test executed engines become re-runnable after being reset"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
+        engine.run()
+        engine.reset()
+        engine.run()
+
+    def test_num_processes_unchanged(self) -> None:
+        """Test the number of processes does not change when and engine is reset"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
+        engine.run()
+        engine.reset()
+        self.assertEqual(4, engine.get_num_processes())
 
 
 class SetNumProcesses(TestCase):
@@ -34,7 +72,7 @@ class SetNumProcesses(TestCase):
     def test_processes_count(self) -> None:
         """Test the getter values are updated by the setter"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         self.assertEqual(4, engine.get_num_processes())
 
         # Increase the number of processes
@@ -48,46 +86,57 @@ class SetNumProcesses(TestCase):
     def test_negative_processes_error(self) -> None:
         """Test a ``ValueError`` is raised for negative processes"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         with self.assertRaises(ValueError):
             engine.set_num_processes(-1)
 
     def test_zero_processes_error(self) -> None:
         """Test a ``ValueError`` is raised for zero processes"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         with self.assertRaises(ValueError):
             engine.set_num_processes(0)
 
     def test_locked_engine_error(self) -> None:
         """Test a ``RuntimeError`` is raised when setting processes on a locked engine"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         engine.run()
 
         with self.assertRaises(RuntimeError):
             engine.set_num_processes(2)
 
 
-class Reset(TestCase):
-    """Test the ``reset`` method"""
+class IsFinished(TestCase):
+    """Test the ``is_finished`` method"""
 
-    def test_num_processes_settable(self) -> None:
-        """Test the number of processes becomes settable after execution"""
+    def test_false_before_run(self) -> None:
+        """Test the return value is ``False`` for new instances"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
+        self.assertFalse(MultiprocessingEngine(num_processes=4, target=lambda: None).is_finished())
+
+    def test_false_while_running(self) -> None:
+        """Test the return value is ``False`` while the engine is running"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine.run_async()
+        self.assertFalse(engine.is_finished())
+        engine.kill()
+
+    def test_true_after_run(self) -> None:
+        """Test the return value is ``True`` for executed instances"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
+        engine.run()
+        self.assertTrue(engine.is_finished())
+
+    def test_false_after_reset(self) -> None:
+        """Test the return value is ``False`` for reset instances"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         engine.run()
         engine.reset()
-
-        engine.set_num_processes(2)
-        self.assertEqual(2, engine.get_num_processes())
-
-    def test_not_executed_error(self) -> None:
-        """Test a ``RuntimeError`` is raised when calling the method before executing the engine"""
-
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: 1)
-        with self.assertRaises(RuntimeError):
-            engine.reset()
+        self.assertFalse(engine.is_finished())
 
 
 class Kill(TestCase):
