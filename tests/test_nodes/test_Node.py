@@ -1,7 +1,7 @@
 """Tests for the ``Node`` class."""
-
 from time import sleep
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from egon.exceptions import NodeValidationError
 from egon.nodes import Node
@@ -17,7 +17,7 @@ class TestNode(Node):
 class NameAssignment(TestCase):
     """Test the dynamic generation of node names"""
 
-    def test_defaults_to_className(self) -> None:
+    def test_defaults_to_class_name(self) -> None:
         """Test the default node name matches the class name"""
 
         self.assertEqual('TestNode', TestNode(num_processes=1).name)
@@ -276,6 +276,31 @@ class Validate(TestCase):
         node2.validate()
 
 
+class Execute(TestCase):
+    """Tests for the ``execute`` method"""
+
+    @patch.object(TestNode, 'setup')
+    @patch.object(TestNode, 'action')
+    @patch.object(TestNode, 'teardown')
+    def test_call_order_in_child_process(self, mock_setup, mock_action, mock_teardown) -> None:
+        """Test the setup/teardown call order within the child processes"""
+
+        # The ``_execute_helper`` method is responsible setup/action/teardown tasks in the child process
+        mock_parent = Mock()
+        mock_parent.setup, mock_parent.action, mock_parent.teardown = mock_setup, mock_action, mock_teardown
+        # mock_setup.assert_called_once()
+        # mock_action.assert_called_once()
+        # mock_teardown.assert_called_once()
+
+        TestNode(1)._execute_helper()
+        mock_parent.assert_has_calls([mock_parent.setup, mock_parent.action, mock_parent.teardown])
+
+    def test_call_order_in_parent_process(self) -> None:
+        """Test the setup/teardown call order within the child processes"""
+
+        self.fail()
+
+
 class IsFinished(TestCase):
     """Test the ``is_finished`` method"""
 
@@ -283,22 +308,6 @@ class IsFinished(TestCase):
         """Test the return value is ``False`` before execution"""
 
         self.assertFalse(TestNode(num_processes=1).is_finished())
-
-    def test_false_while_is_running(self) -> None:
-        """Test the return value is ``False`` while the node is running"""
-
-        class SleepNode(Node):
-            """A node that sleeps for 10 seconds"""
-
-            def action(self) -> None:
-                """Sleep for 10 seconds"""
-
-                sleep(5)
-
-        node = SleepNode(num_processes=1)
-        node.execute()
-        self.assertFalse(node.is_finished())
-        sleep(10)  # ive child processes time to exit
 
     def test_true_after_execution(self) -> None:
         """Test the return value is ``True`` after execution finishes"""
@@ -391,7 +400,7 @@ class StringRepresentation(TestCase):
         self.assertEqual(expected_string, str(node))
 
     def test_repr_matches_string(self) -> None:
-        """Test nodes include name and ID info when cast to a string"""
+        """Test the ``str`` and ``repr`` strings are the same"""
 
         node = TestNode(num_processes=1, name='my_node')
         self.assertEqual(repr(node), str(node))
