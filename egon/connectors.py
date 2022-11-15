@@ -46,6 +46,24 @@ class BaseConnector:
 
         return self._node
 
+    def _add_partner(self, other: BaseConnector) -> None:
+        """Add a partner connector
+
+        Args:
+            other: The connector to add
+        """
+
+        self._connected_partners.add(other)
+
+    def _remove_partner(self, other: BaseConnector) -> None:
+        """Remove a partner connector
+
+        Args:
+            other: The connector to remove
+        """
+
+        self._connected_partners.remove(other)
+
     @property
     def partners(self) -> Tuple[BaseConnector]:
         """Return a tuple of connectors that are connected to this instance"""
@@ -198,8 +216,8 @@ class OutputConnector(BaseConnector):
         if type(conn) is type(self):
             raise ValueError('Cannot join together two connector objects of the same type.')
 
-        self._connected_partners.add(conn)
-        conn._connected_partners.add(self)
+        self._add_partner(conn)
+        conn._add_partner(self)
 
     def disconnect(self, conn: InputConnector) -> None:
         """Disconnect an established connection to the given ``InputConnector`` instance
@@ -215,8 +233,8 @@ class OutputConnector(BaseConnector):
             raise MissingConnectionError('The given connector object is not connected to this instance')
 
         # Disconnect both connectors from each other
-        conn._connected_partners.remove(self)
-        self._connected_partners.remove(conn)
+        conn._remove_partner(self)
+        self._remove_partner(conn)
 
     def put(self, item: Any) -> None:
         """Add an item to the connector queue
