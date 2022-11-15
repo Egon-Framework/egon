@@ -51,3 +51,9 @@ class StringRepresentation(TestCase):
 
         expected_string = f'<BaseConnector(name={connector_name}) object at {hex(id(connector))}>'
         self.assertEqual(expected_string, str(connector))
+
+    def test_repr_matches_string(self) -> None:
+        """Test the ``str`` and ``repr`` strings are the same"""
+
+        connector = BaseConnector()
+        self.assertEqual(repr(connector), str(connector))
