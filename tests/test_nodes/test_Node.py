@@ -314,7 +314,7 @@ class IsFinished(TestCase):
 
         node = TestNode(num_processes=1)
         node.execute()
-        self.assertFalse(node.is_finished())
+        self.assertTrue(node.is_finished())
 
 
 class IsExpectingData(TestCase):
