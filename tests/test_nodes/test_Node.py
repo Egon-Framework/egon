@@ -1,5 +1,5 @@
 """Tests for the ``Node`` class."""
-from time import sleep
+
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
