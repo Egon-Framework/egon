@@ -1,7 +1,7 @@
 """Tests for the ``Node`` class."""
 
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call
 
 from egon.exceptions import NodeValidationError
 from egon.nodes import Node
@@ -279,26 +279,22 @@ class Validate(TestCase):
 class Execute(TestCase):
     """Tests for the ``execute`` method"""
 
-    @patch.object(TestNode, 'setup')
-    @patch.object(TestNode, 'action')
-    @patch.object(TestNode, 'teardown')
-    def test_call_order_in_child_process(self, mock_setup, mock_action, mock_teardown) -> None:
+    @staticmethod
+    def test_call_order_in_child_process() -> None:
         """Test the setup/teardown call order within the child processes"""
 
         # The ``_execute_helper`` method is responsible setup/action/teardown tasks in the child process
         mock_parent = Mock()
-        mock_parent.setup, mock_parent.action, mock_parent.teardown = mock_setup, mock_action, mock_teardown
-        # mock_setup.assert_called_once()
-        # mock_action.assert_called_once()
-        # mock_teardown.assert_called_once()
+        TestNode._execute_helper(mock_parent)
+        mock_parent.assert_has_calls([call.setup, call.action, call.teardown])
 
-        TestNode(1)._execute_helper()
-        mock_parent.assert_has_calls([mock_parent.setup, mock_parent.action, mock_parent.teardown])
-
-    def test_call_order_in_parent_process(self) -> None:
+    @staticmethod
+    def test_call_order_in_parent_process() -> None:
         """Test the setup/teardown call order within the child processes"""
 
-        self.fail()
+        mock_parent = Mock()
+        TestNode.execute(mock_parent)
+        mock_parent.assert_has_calls([call.class_setup, call._engine.run, call.class_teardown])
 
 
 class IsFinished(TestCase):
