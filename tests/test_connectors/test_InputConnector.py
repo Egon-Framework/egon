@@ -1,10 +1,33 @@
 """Tests for the ``InputConnector`` class"""
 
 from queue import Empty
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from egon.connectors import InputConnector
 from egon.exceptions import MissingConnectionError
+from egon.nodes import Node
+
+
+class DummyUpstreamNode(Node):
+    """Dummy node with a single output for running tests"""
+
+    def __init__(self):
+        super().__init__(1)
+        self.output = self.create_output()
+
+    def action(self):
+        """Implements method required by abstract parent class"""
+
+
+class DummyDownstreamNode(Node):
+    """Dummy node with a single input for running tests"""
+
+    def __init__(self):
+        super().__init__(1)
+        self.input = self.create_input()
+
+    def action(self):
+        """Implements method required by abstract parent class"""
 
 
 class MaxSizeValidation(TestCase):
@@ -114,15 +137,21 @@ class Get(TestCase):
 class IterGet(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``iter_get`` method"""
 
-    @skip('Testing iter_get in this way requires finishing the node classes')
+    def setUp(self) -> None:
+        """Create and connect two nodes"""
+
+        self.upstream = DummyUpstreamNode()
+        self.downstream = DummyDownstreamNode()
+        self.upstream.output.connect(self.downstream.input)
+
     def test_returns_queue_values(self) -> None:
         """Test values are returned from the instance queue"""
 
-        connector = InputConnector()
-        connector._put(1)
-        connector._put(2)
+        self.upstream.output.put(1)
+        self.upstream.output.put(2)
+        self.upstream.execute()
 
-        self.assertSequenceEqual([1, 2], list(connector.iter_get()))
+        self.assertSequenceEqual([1, 2], list(self.downstream.input.iter_get()))
 
     def test_missing_connection_error(self) -> None:
         """Test a ``MissingConnectionError`` error is raised if the connector has no parent node"""
@@ -130,10 +159,9 @@ class IterGet(TestCase):
         with self.assertRaises(MissingConnectionError):
             next(InputConnector().iter_get())
 
-    @skip('Testing iter_get in this way requires finishing the node classes')
     def test_empty_iterable(self) -> None:
         """Test the ``iter_get`` method can be used on an empty connector instance"""
 
-        connector = InputConnector()
-        for _ in connector.iter_get():
+        self.upstream.execute()
+        for _ in self.downstream.input.iter_get():
             self.fail('No data should have been returned')

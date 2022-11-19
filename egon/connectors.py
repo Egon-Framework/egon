@@ -197,7 +197,7 @@ class InputConnector(BaseConnector):
                 'The ``iter_get`` method cannot be used for ``InputConnector`` instances not assigned to a parent node.'
             )
 
-        while self.parent_node.expecting_data():
+        while self.parent_node.is_expecting_data():
             try:
                 yield self.get(timeout=timeout, refresh_interval=refresh_interval)
 
