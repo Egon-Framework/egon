@@ -11,11 +11,11 @@ class TestNode(Node):
     """Dummy node object for running tests"""
 
     def action(self):
-        """"""
+        """Implements method required by abstract parent class"""
 
 
 class NameAssignment(TestCase):
-    """Test the dynamic generation of node names"""
+    """Test the generation and assignment of node names"""
 
     def test_defaults_to_class_name(self) -> None:
         """Test the default node name matches the class name"""
@@ -169,8 +169,8 @@ class OutputConnectors(TestCase):
 class UpstreamNodes(TestCase):
     """Test the ``upstream_nodes`` method"""
 
-    def test_multiple_upstream_nodes(self) -> None:
-        """Test all upstream nodes are returned"""
+    def test_multiple_inputs(self) -> None:
+        """Test upstream nodes are returned for multiple upstreams connected by multiple inputs"""
 
         # Connect two upstream nodes to a single downstream node
         upstream1 = TestNode(num_processes=1, name='upstream1')
@@ -183,13 +183,8 @@ class UpstreamNodes(TestCase):
         # Check both upstream nodes are returned by the downstream node
         self.assertCountEqual((upstream1, upstream2), downstream.upstream_nodes())
 
-    def test_empty_for_no_upstream(self) -> None:
-        """Test the return value is empty when no upstream nodes are connected"""
-
-        self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
-
-    def test_no_duplicates_returned(self) -> None:
-        """Test nodes that share an input connector are each only returned once"""
+    def test_shared_input(self) -> None:
+        """Test upstream nodes are returned for multiple upstreams connected by a shared input"""
 
         upstream1 = TestNode(num_processes=1, name='upstream1')
         upstream2 = TestNode(num_processes=1, name='upstream2')
@@ -201,12 +196,17 @@ class UpstreamNodes(TestCase):
 
         self.assertCountEqual((upstream1, upstream2), downstream.upstream_nodes())
 
+    def test_empty_for_no_upstream(self) -> None:
+        """Test the return value is empty when no upstream nodes are connected"""
+
+        self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
+
 
 class DownstreamNodes(TestCase):
     """Test the ``downstream_nodes`` method"""
 
     def test_multiple_downstream_nodes(self) -> None:
-        """Test all downstream nodes are returned"""
+        """Test downstream nodes are returned for multiple downstreams connected by multiple output"""
 
         # Connect a single upstream node to two downstream nodes
         upstream = TestNode(num_processes=1, name='upstream')
@@ -219,13 +219,8 @@ class DownstreamNodes(TestCase):
         # Check both downstream nodes are returned by the upstream node
         self.assertCountEqual((downstream1, downstream2), upstream.downstream_nodes())
 
-    def test_empty_for_no_downstream(self) -> None:
-        """Test the return value is empty when no downstream nodes are connected"""
-
-        self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
-
-    def test_no_duplicates_returned(self) -> None:
-        """Test nodes that share an output connector are each only returned once"""
+    def test_shared_output(self) -> None:
+        """Test downstream nodes are returned for multiple downstreams connected by a shared output"""
 
         upstream = TestNode(num_processes=1, name='upstream')
         downstream1 = TestNode(num_processes=1, name='downstream1')
@@ -236,6 +231,11 @@ class DownstreamNodes(TestCase):
         upstream_output.connect(downstream2.create_input())
 
         self.assertCountEqual((downstream1, downstream2), upstream.downstream_nodes())
+
+    def test_empty_for_no_downstream(self) -> None:
+        """Test the return value is empty when no downstream nodes are connected"""
+
+        self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
 
 
 class Validate(TestCase):
@@ -277,7 +277,7 @@ class Validate(TestCase):
 
 
 class Execute(TestCase):
-    """Tests for the ``execute`` method"""
+    """Test the ``execute`` method"""
 
     @staticmethod
     def test_call_order_in_child_process() -> None:
@@ -290,7 +290,7 @@ class Execute(TestCase):
 
     @staticmethod
     def test_call_order_in_parent_process() -> None:
-        """Test the setup/teardown call order within the child processes"""
+        """Test the class_setup/class_teardown call order within the parent processes"""
 
         mock_parent = Mock()
         TestNode.execute(mock_parent)
