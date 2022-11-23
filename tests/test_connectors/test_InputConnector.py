@@ -1,10 +1,37 @@
 """Tests for the ``InputConnector`` class"""
 
 from queue import Empty
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from egon.connectors import InputConnector
 from egon.exceptions import MissingConnectionError
+from egon.nodes import Node
+
+
+class DummyUpstreamNode(Node):
+    """Dummy node with a single output for running tests"""
+
+    def __init__(self):
+        """Define a single output connector"""
+
+        super().__init__(1)
+        self.output = self.create_output()
+
+    def action(self):
+        """Implements method required by abstract parent class"""
+
+
+class DummyDownstreamNode(Node):
+    """Dummy node with a single input for running tests"""
+
+    def __init__(self):
+        """Define a single input connector"""
+
+        super().__init__(1)
+        self.input = self.create_input()
+
+    def action(self):
+        """Implements method required by abstract parent class"""
 
 
 class MaxSizeValidation(TestCase):
@@ -72,7 +99,6 @@ class QueueProperties(TestCase):
         self.assertEqual(1, connector.maxsize)
 
 
-# TODO: Test behavior in relation to parent nodes
 class Get(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``get`` method"""
 
@@ -87,6 +113,12 @@ class Get(TestCase):
 
         with self.assertRaises(ValueError):
             InputConnector().get(timeout=15, refresh_interval=-1)
+
+    def test_error_on_negative_timeout(self) -> None:
+        """Test a ``ValueError`` is raised when ``timeout`` is negative"""
+
+        with self.assertRaises(ValueError):
+            InputConnector().get(timeout=-1)
 
     def test_returns_queue_value(self) -> None:
         """Test data is returned from the connector queue"""
@@ -104,25 +136,90 @@ class Get(TestCase):
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
+    def test_timeout_with_running_parent_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector
+
+        This is a regression test using a connector attached to a parent node
+        that has not been executed yet.
+        """
+
+        upstream = DummyUpstreamNode()
+        downstream = DummyDownstreamNode()
+        upstream.output.connect(downstream.input)
+
+        # This test requires the parent node is not finished executing
+        self.assertTrue(downstream.is_expecting_data())
+
+        with self.assertRaises(TimeoutError):
+            downstream.input.get(timeout=4)
+
     def test_empty_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector"""
 
         with self.assertRaises(Empty):
             InputConnector().get()
 
+    def test_empty_with_finished_parent_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector
+
+        This is a regression test using a connector attached to a parent node
+        that is finished executing.
+        """
+
+        upstream = DummyUpstreamNode()
+        downstream = DummyDownstreamNode()
+        upstream.output.connect(downstream.input)
+
+        # This test requires the parent node is finished executing
+        upstream.execute()
+        self.assertFalse(downstream.is_expecting_data())
+
+        with self.assertRaises(Empty):
+            downstream.input.get(timeout=4)
+
 
 class IterGet(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``iter_get`` method"""
 
-    @skip('Testing iter_get in this way requires finishing the node classes')
+    def setUp(self) -> None:
+        """Create and connect two nodes"""
+
+        self.upstream = DummyUpstreamNode()
+        self.downstream = DummyDownstreamNode()
+        self.upstream.output.connect(self.downstream.input)
+
+    def test_error_on_zero_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is zero"""
+
+        iterator = self.downstream.input.iter_get(timeout=15, refresh_interval=0)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
+    def test_error_on_negative_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is negative"""
+
+        iterator = self.downstream.input.iter_get(timeout=15, refresh_interval=-1)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
+    def test_error_on_negative_timeout(self) -> None:
+        """Test a ``ValueError`` is raised when ``timeout`` is negative"""
+
+        iterator = self.downstream.input.iter_get(timeout=-1)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
     def test_returns_queue_values(self) -> None:
         """Test values are returned from the instance queue"""
 
-        connector = InputConnector()
-        connector._put(1)
-        connector._put(2)
+        self.upstream.output.put(1)
+        self.upstream.output.put(2)
 
-        self.assertSequenceEqual([1, 2], list(connector.iter_get()))
+        # The upstream node must be finished executing or ``iter_get`` will wait
+        # indefinitely for more data to be produced
+        self.upstream.execute()
+
+        self.assertSequenceEqual([1, 2], list(self.downstream.input.iter_get()))
 
     def test_missing_connection_error(self) -> None:
         """Test a ``MissingConnectionError`` error is raised if the connector has no parent node"""
@@ -130,10 +227,8 @@ class IterGet(TestCase):
         with self.assertRaises(MissingConnectionError):
             next(InputConnector().iter_get())
 
-    @skip('Testing iter_get in this way requires finishing the node classes')
     def test_empty_iterable(self) -> None:
         """Test the ``iter_get`` method can be used on an empty connector instance"""
 
-        connector = InputConnector()
-        for _ in connector.iter_get():
-            self.fail('No data should have been returned')
+        self.upstream.execute()
+        self.assertFalse(list(self.downstream.input.iter_get()))

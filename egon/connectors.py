@@ -12,21 +12,25 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from queue import Empty
-from typing import Any, Optional, Set, Tuple
+from typing import Any, Optional, Set, TYPE_CHECKING, Tuple
 
 from egon.exceptions import MissingConnectionError
+
+if TYPE_CHECKING:  # pragma: nocover
+    from .nodes import Node
 
 
 class BaseConnector:
     """Base class for building signal/slot style connectors on top of an underlying queue"""
 
-    def __init__(self, name: str = None) -> None:
+    def __init__(self, parent_node: Node = None, name: str = None) -> None:
         """Queue-like object for passing data between nodes
 
         By default, connector names are generated using the instance's memory
         identifier in hexadecimal representation.
 
         Args:
+            parent_node: The node instance this connector is attached to
             name: Set a descriptive name for the connector object
         """
 
@@ -35,16 +39,34 @@ class BaseConnector:
         self.name = str(name) if name else str(self._id)
 
         # The parent node
-        self._node = None
+        self._parent_node = parent_node
 
         # Other connector objects connected to this instance
         self._connected_partners: Set[BaseConnector] = set()
 
     @property
-    def parent_node(self) -> Optional:  # Todo: update this type hint
+    def parent_node(self) -> Optional[Node]:
         """The parent node this connector is assigned to"""
 
-        return self._node
+        return self._parent_node
+
+    def _add_partner(self, other: BaseConnector) -> None:
+        """Add a partner connector
+
+        Args:
+            other: The connector to add
+        """
+
+        self._connected_partners.add(other)
+
+    def _remove_partner(self, other: BaseConnector) -> None:
+        """Remove a partner connector
+
+        Args:
+            other: The connector to remove
+        """
+
+        self._connected_partners.remove(other)
 
     @property
     def partners(self) -> Tuple[BaseConnector]:
@@ -57,7 +79,7 @@ class BaseConnector:
 
         return bool(self._connected_partners)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """Return a string representation of the parent class"""
 
         return f'<{self.__class__.__name__}(name={self.name}) object at {self._id}>'
@@ -70,17 +92,18 @@ class InputConnector(BaseConnector):
     the built-in ``multiprocessing.Queue`` class.
     """
 
-    def __init__(self, name: str = None, maxsize: int = 0) -> None:
+    def __init__(self, parent_node: Node = None, name: str = None, maxsize: int = 0) -> None:
         """Create a new input connector
 
         By default, the input object has no maximum size and can grow unbounded.
 
         Args:
+            parent_node: The node instance this connector is attached to
             name: Set a descriptive name for the connector object
             maxsize: The maximum number of items to store in the connector at once
         """
 
-        super().__init__(name)
+        super().__init__(parent_node=parent_node, name=name)
 
         maxsize = maxsize or 0
         if not isinstance(maxsize, int) or maxsize < 0:
@@ -132,21 +155,23 @@ class InputConnector(BaseConnector):
 
         Raises:
             TimeOutError: Raised if the method call times out
+            Empty: When there is no data to return
         """
-
-        if refresh_interval <= 0:
-            raise ValueError('Connector refresh interval must be greater than zero.')
 
         if timeout is None:
             timeout = float('inf')
 
+        if refresh_interval <= 0 or timeout < 0:
+            raise ValueError('Connector refresh and timeout intervals must be greater than zero.')
+
         while timeout > 0:
             this_timeout = min(timeout, refresh_interval)
+            timeout -= this_timeout
+
             try:
                 return self._queue.get(timeout=this_timeout)
 
             except (Empty, TimeoutError):
-                timeout -= this_timeout
                 if self.parent_node and self.parent_node.is_expecting_data():
                     continue
 
@@ -174,7 +199,7 @@ class InputConnector(BaseConnector):
                 'The ``iter_get`` method cannot be used for ``InputConnector`` instances not assigned to a parent node.'
             )
 
-        while self.parent_node.expecting_data():
+        while self.parent_node.is_expecting_data():
             try:
                 yield self.get(timeout=timeout, refresh_interval=refresh_interval)
 
@@ -198,8 +223,8 @@ class OutputConnector(BaseConnector):
         if type(conn) is type(self):
             raise ValueError('Cannot join together two connector objects of the same type.')
 
-        self._connected_partners.add(conn)
-        conn._connected_partners.add(self)
+        self._add_partner(conn)
+        conn._add_partner(self)
 
     def disconnect(self, conn: InputConnector) -> None:
         """Disconnect an established connection to the given ``InputConnector`` instance
@@ -215,8 +240,8 @@ class OutputConnector(BaseConnector):
             raise MissingConnectionError('The given connector object is not connected to this instance')
 
         # Disconnect both connectors from each other
-        conn._connected_partners.remove(self)
-        self._connected_partners.remove(conn)
+        conn._remove_partner(self)
+        self._remove_partner(conn)
 
     def put(self, item: Any) -> None:
         """Add an item to the connector queue
