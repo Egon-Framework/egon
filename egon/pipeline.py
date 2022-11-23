@@ -60,3 +60,8 @@ class Pipeline:
 
         for node in self.get_all_nodes():
             node._engine.join()
+
+    def is_finished(self) -> bool:
+        """Return whether the pipeline is finished """
+
+        return all(node.is_finished() for node in self._nodes)
