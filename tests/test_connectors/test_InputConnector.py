@@ -12,6 +12,8 @@ class DummyUpstreamNode(Node):
     """Dummy node with a single output for running tests"""
 
     def __init__(self):
+        """Define a single output connector"""
+
         super().__init__(1)
         self.output = self.create_output()
 
@@ -23,6 +25,8 @@ class DummyDownstreamNode(Node):
     """Dummy node with a single input for running tests"""
 
     def __init__(self):
+        """Define a single input connector"""
+
         super().__init__(1)
         self.input = self.create_input()
 
