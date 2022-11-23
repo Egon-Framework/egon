@@ -155,21 +155,23 @@ class InputConnector(BaseConnector):
 
         Raises:
             TimeOutError: Raised if the method call times out
+            Empty: When there is no data to return
         """
-
-        if refresh_interval <= 0:
-            raise ValueError('Connector refresh interval must be greater than zero.')
 
         if timeout is None:
             timeout = float('inf')
 
+        if refresh_interval <= 0 or timeout < 0:
+            raise ValueError('Connector refresh and timeout intervals must be greater than zero.')
+
         while timeout > 0:
             this_timeout = min(timeout, refresh_interval)
+            timeout -= this_timeout
+
             try:
                 return self._queue.get(timeout=this_timeout)
 
             except (Empty, TimeoutError):
-                timeout -= this_timeout
                 if self.parent_node and self.parent_node.is_expecting_data():
                     continue
 
@@ -197,7 +199,7 @@ class InputConnector(BaseConnector):
                 'The ``iter_get`` method cannot be used for ``InputConnector`` instances not assigned to a parent node.'
             )
 
-        while self.parent_node.expecting_data():
+        while self.parent_node.is_expecting_data():
             try:
                 yield self.get(timeout=timeout, refresh_interval=refresh_interval)
 
