@@ -95,7 +95,6 @@ class QueueProperties(TestCase):
         self.assertEqual(1, connector.maxsize)
 
 
-# TODO: Test behavior in relation to parent nodes
 class Get(TestCase):
     """Test data retrieval from ``InputConnector`` instances via the ``get`` method"""
 
@@ -110,6 +109,12 @@ class Get(TestCase):
 
         with self.assertRaises(ValueError):
             InputConnector().get(timeout=15, refresh_interval=-1)
+
+    def test_error_on_negative_timeout(self) -> None:
+        """Test a ``ValueError`` is raised when ``timeout`` is negative"""
+
+        with self.assertRaises(ValueError):
+            InputConnector().get(timeout=-1)
 
     def test_returns_queue_value(self) -> None:
         """Test data is returned from the connector queue"""
@@ -150,6 +155,7 @@ class IterGet(TestCase):
         self.upstream.output.put(1)
         self.upstream.output.put(2)
         self.upstream.execute()
+        self.downstream.execute()
 
         self.assertSequenceEqual([1, 2], list(self.downstream.input.iter_get()))
 
@@ -163,5 +169,6 @@ class IterGet(TestCase):
         """Test the ``iter_get`` method can be used on an empty connector instance"""
 
         self.upstream.execute()
+        self.downstream.execute()
         for _ in self.downstream.input.iter_get():
             self.fail('No data should have been returned')
