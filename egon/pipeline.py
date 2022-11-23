@@ -7,7 +7,10 @@ class Pipeline:
     """Base class for orchestrating an interconnected collection of analysis nodes"""
 
     def __init__(self) -> None:
-        """Instantiate the parent pipeline"""
+        """Instantiate the parent pipeline
+
+        Child classes should extend this method to define and setup pipeline nodes.
+        """
 
         self._nodes = []
 

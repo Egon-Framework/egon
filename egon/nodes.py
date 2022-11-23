@@ -18,6 +18,8 @@ class Node(abc.ABC):
     def __init__(self, num_processes: int, name: str = None) -> None:
         """Instantiate a new pipeline node
 
+        Child classes should extend this method to define node inputs and outputs.
+
         Args:
             name: Set a descriptive name for the connector object
             num_processes: The number of processes to allocate to the node instance
