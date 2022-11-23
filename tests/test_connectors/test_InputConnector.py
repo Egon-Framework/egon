@@ -132,11 +132,46 @@ class Get(TestCase):
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
+    def test_timeout_with_running_parent_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector
+
+        This is a regression test using a connector attached to a parent node
+        that has not been executed yet.
+        """
+
+        upstream = DummyUpstreamNode()
+        downstream = DummyDownstreamNode()
+        upstream.output.connect(downstream.input)
+
+        # This test requires the parent node is not finished executing
+        self.assertTrue(downstream.is_expecting_data())
+
+        with self.assertRaises(TimeoutError):
+            downstream.input.get(timeout=4)
+
     def test_empty_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector"""
 
         with self.assertRaises(Empty):
             InputConnector().get()
+
+    def test_empty_with_finished_parent_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector
+
+        This is a regression test using a connector attached to a parent node
+        that is finished executing.
+        """
+
+        upstream = DummyUpstreamNode()
+        downstream = DummyDownstreamNode()
+        upstream.output.connect(downstream.input)
+
+        # This test requires the parent node is finished executing
+        upstream.execute()
+        self.assertFalse(downstream.is_expecting_data())
+
+        with self.assertRaises(Empty):
+            downstream.input.get(timeout=4)
 
 
 class IterGet(TestCase):
