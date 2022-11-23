@@ -6,31 +6,33 @@ from .nodes import Node
 class Pipeline:
     """Base class for orchestrating an interconnected collection of analysis nodes"""
 
-    def validate(self) -> None:
-        """Inspect the pipeline to ensure all nodes are properly interconnected."""
+    def __init__(self) -> None:
+        """Instantiate the parent pipeline"""
 
-    def _get_attrs(self, attr_type: Type) -> Node:
-        """Return a list of instance attributes matching the given type
+        self._nodes = []
 
-        All class attributes are ignored.
-
-        Args:
-            attr_type: The object type to search for
+    def create_node(self, node_class: Type[Node], /, *args, **kwargs) -> Node:
+        """Create a new analysis node and attach it to the current pipeline
 
         Returns:
-            A list of attributes with type ``attr_type``
+            A new instance of the given node type
         """
 
-        for attr_name in dir(self):
-            if (not attr_name.startswith('_')) and (attr_name not in dir(self.__class__)):
-                attr = getattr(self, attr_name)
-                if isinstance(attr, attr_type):
-                    yield attr
+        node = node_class(**kwargs)
+        self._nodes.append(node)
+        return node
+
+    def validate(self) -> None:
+        """Inspect the pipeline to ensure all nodes are properly interconnected.
+
+        Raises:
+            PipelineValidationError: For an invalid pipeline instance
+        """
 
     def get_all_nodes(self) -> Tuple[Node, ...]:
         """Return all nodes assigned to the parent pipeline"""
 
-        return tuple(self._get_attrs(Node))
+        return tuple(self._nodes)
 
     def kill(self) -> None:
         """Kill all child processes assigned to the pipeline"""
