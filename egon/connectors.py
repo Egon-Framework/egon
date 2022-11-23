@@ -155,6 +155,7 @@ class InputConnector(BaseConnector):
 
         Raises:
             TimeOutError: Raised if the method call times out
+            Empty: When there is no data to return
         """
 
         if timeout is None:

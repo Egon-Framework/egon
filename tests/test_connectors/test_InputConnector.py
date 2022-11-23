@@ -184,13 +184,36 @@ class IterGet(TestCase):
         self.downstream = DummyDownstreamNode()
         self.upstream.output.connect(self.downstream.input)
 
+    def test_error_on_zero_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is zero"""
+
+        iterator = self.downstream.input.iter_get(timeout=15, refresh_interval=0)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
+    def test_error_on_negative_refresh(self) -> None:
+        """Test a ``ValueError`` is raised when ``refresh_interval`` is negative"""
+
+        iterator = self.downstream.input.iter_get(timeout=15, refresh_interval=-1)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
+    def test_error_on_negative_timeout(self) -> None:
+        """Test a ``ValueError`` is raised when ``timeout`` is negative"""
+
+        iterator = self.downstream.input.iter_get(timeout=-1)
+        with self.assertRaises(ValueError):
+            next(iterator)
+
     def test_returns_queue_values(self) -> None:
         """Test values are returned from the instance queue"""
 
         self.upstream.output.put(1)
         self.upstream.output.put(2)
+
+        # The upstream node must be finished executing or ``iter_get`` will wait
+        # indefinitely for more data to be produced
         self.upstream.execute()
-        self.downstream.execute()
 
         self.assertSequenceEqual([1, 2], list(self.downstream.input.iter_get()))
 
@@ -204,6 +227,4 @@ class IterGet(TestCase):
         """Test the ``iter_get`` method can be used on an empty connector instance"""
 
         self.upstream.execute()
-        self.downstream.execute()
-        for _ in self.downstream.input.iter_get():
-            self.fail('No data should have been returned')
+        self.assertFalse(list(self.downstream.input.iter_get()))
