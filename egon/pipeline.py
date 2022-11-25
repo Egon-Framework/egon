@@ -22,16 +22,25 @@ class Pipeline:
     def create_node(self, node_class: Type[Node], /, *args, **kwargs) -> Node:
         """Create a new analysis node and attach it to the current pipeline
 
+        Args:
+            node_class: The Node subclass to instantiate
+            *args: Any positional arguments for instantiating the node
+            **kwargs: Any keyword arguments for instantiating the node
+
         Returns:
             A new instance of the given node type
         """
 
-        node = node_class(**kwargs)
+        node = node_class(*args, **kwargs)
         self._nodes.append(node)
         return node
 
     def validate(self) -> None:
-        """Inspect the pipeline to ensure all nodes are properly interconnected.
+        """Inspect the pipeline to ensure all nodes are properly interconnected
+
+        This method checks for:
+         - Nodes that are connected in a way that forms an infinite loop
+         - Nodes that are not connected to the rest of the pipeline
 
         Raises:
             PipelineValidationError: For an invalid pipeline instance
@@ -43,12 +52,13 @@ class Pipeline:
         if self._isolated_nodes():
             raise PipelineValidationError('The analysis pipeline disconnected nodes')
 
-    def _is_cyclic_helper(self, node: Node, visited, recursive_stack: Dict[Node, bool]) -> bool:
+    def _is_cyclic_helper(self, node: Node, visited: Dict[Node, bool], recursive_stack: Dict[Node, bool]) -> bool:
         """Recursive helper function for determining if a graph is cyclic
 
         Args:
-            node: The current node being visited
-            recursive_stack: Dictionary used for tracking which nodes have been visited
+            node: The current node being examined
+            visited: Dictionary for tracking which nodes have been visited
+            recursive_stack: Dictionary for tracking which nodes have been visited this recursion cycle
 
         Returns:
             If a cycle has been discovered
@@ -85,7 +95,7 @@ class Pipeline:
 
         return False
 
-    def _isolated_nodes_helper(self, node: Node, recursive_stack: Dict[Node, bool], direction) -> None:
+    def _isolated_nodes_helper(self, node: Node, recursive_stack: Dict[Node, bool], direction: bool) -> None:
         """Helper function for a traditional depth first search
 
         Args:
@@ -119,7 +129,7 @@ class Pipeline:
         return tuple(self._nodes)
 
     def is_finished(self) -> bool:
-        """Return whether the pipeline is finished """
+        """Return whether the pipeline is finished"""
 
         return all(node.is_finished() for node in self._nodes)
 
