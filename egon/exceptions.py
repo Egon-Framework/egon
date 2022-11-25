@@ -7,3 +7,7 @@ class MissingConnectionError(Exception):
 
 class NodeValidationError(Exception):
     """Raised when an individual node fails to validate properly"""
+
+
+class PipelineValidationError(Exception):
+    """Raised when a pipeline fails to validate properly"""
