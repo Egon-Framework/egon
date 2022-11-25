@@ -203,8 +203,8 @@ class InputConnector(BaseConnector):
             try:
                 yield self.get(timeout=timeout, refresh_interval=refresh_interval)
 
-            except Empty as excep:
-                raise StopIteration from excep
+            except Empty:
+                break
 
 
 class OutputConnector(BaseConnector):
