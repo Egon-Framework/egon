@@ -1,5 +1,5 @@
 """Tests for the ``Pipeline`` class"""
-
+from time import sleep
 from unittest import TestCase
 
 from egon.exceptions import PipelineValidationError
@@ -11,7 +11,9 @@ class Dummy(Node):
     """A dummy node object for testing"""
 
     def action(self) -> None:
-        """Implements method required by abstract parent class"""
+        """Sleep for 5 seconds"""
+
+        sleep(5)
 
 
 def valid_pipeline() -> Pipeline:
@@ -66,3 +68,27 @@ class Validation(TestCase):
 
         with self.assertRaisesRegex(PipelineValidationError, 'disconnected nodes'):
             disconnected_pipeline().validate()
+
+
+class IsFinished(TestCase):
+    """Test the ``is_finished`` method"""
+
+    def test_false_before_run(self) -> None:
+        """Test the return value is ``False`` for new instances"""
+
+        self.assertFalse(valid_pipeline().is_finished())
+
+    def test_false_while_running(self) -> None:
+        """Test the return value is ``False`` while the pipeline is running"""
+
+        pipeline = valid_pipeline()
+        pipeline.run_async()
+        self.assertFalse(pipeline.is_finished())
+        pipeline.kill()
+
+    def test_true_after_run(self) -> None:
+        """Test the return value is ``True`` for executed instances"""
+
+        pipeline = valid_pipeline()
+        pipeline.run()
+        self.assertTrue(pipeline.is_finished())

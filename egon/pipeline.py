@@ -114,17 +114,16 @@ class Pipeline:
 
         return tuple(self._nodes)
 
-    def kill(self) -> None:
-        """Kill all child processes assigned to the pipeline"""
+    def is_finished(self) -> bool:
+        """Return whether the pipeline is finished """
 
-        for node in self.get_all_nodes():
-            node._engine.kill()
+        return all(node.is_finished() for node in self._nodes)
 
     def run(self) -> None:
         """Run the pipeline and wait for it to exit before continuing execution"""
 
-        for node in self.get_all_nodes():
-            node._engine.run()
+        self.run_async()
+        self.join()
 
     def run_async(self) -> None:
         """Run the pipeline asynchronously"""
@@ -138,7 +137,8 @@ class Pipeline:
         for node in self.get_all_nodes():
             node._engine.join()
 
-    def is_finished(self) -> bool:
-        """Return whether the pipeline is finished """
+    def kill(self) -> None:
+        """Kill all child processes assigned to the pipeline"""
 
-        return all(node.is_finished() for node in self._nodes)
+        for node in self.get_all_nodes():
+            node._engine.kill()
