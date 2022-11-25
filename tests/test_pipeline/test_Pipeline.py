@@ -92,3 +92,15 @@ class IsFinished(TestCase):
         pipeline = valid_pipeline()
         pipeline.run()
         self.assertTrue(pipeline.is_finished())
+
+
+class Kill(TestCase):
+    """Test the termination of processes via the ``kill`` method"""
+
+    def test_marked_as_finished(self) -> None:
+        """Test the pipeline registers as finished after killing any processes"""
+
+        pipeline = valid_pipeline()
+        pipeline.run_async()
+        pipeline.kill()
+        self.assertTrue(pipeline.is_finished())
