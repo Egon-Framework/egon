@@ -2,8 +2,8 @@
 
 from unittest import TestCase
 
+from egon import Node
 from egon.connectors import BaseConnector
-from egon.nodes import Node
 
 
 class TestNode(Node):
