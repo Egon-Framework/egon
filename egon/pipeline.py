@@ -1,3 +1,7 @@
+"""Pipeline objects are used to orchestrate the
+execution of multiple analysis nodes.
+"""
+
 from typing import Dict, Tuple, Type
 
 from .exceptions import PipelineValidationError
