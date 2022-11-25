@@ -3,8 +3,8 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
+from egon import Node
 from egon.exceptions import NodeValidationError
-from egon.nodes import Node
 
 
 class TestNode(Node):

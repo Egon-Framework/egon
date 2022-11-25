@@ -3,9 +3,8 @@
 from time import sleep
 from unittest import TestCase
 
+from egon import Node, Pipeline
 from egon.exceptions import PipelineValidationError
-from egon.nodes import Node
-from egon.pipeline import Pipeline
 
 
 class Dummy(Node):

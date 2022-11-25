@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from egon.connectors import InputConnector, OutputConnector
+from egon import InputConnector, OutputConnector
 from egon.exceptions import MissingConnectionError
 
 
