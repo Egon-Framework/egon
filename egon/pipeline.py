@@ -142,6 +142,7 @@ class Pipeline:
     def run_async(self) -> None:
         """Run the pipeline asynchronously"""
 
+        self.validate()
         for node in self.get_all_nodes():
             node._engine.run_async()
 

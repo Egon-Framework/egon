@@ -95,6 +95,44 @@ class IsFinished(TestCase):
         self.assertTrue(pipeline.is_finished())
 
 
+class RunAsync(TestCase):
+    """Test the ``run_async`` method"""
+
+    def test_validates_before_run(self) -> None:
+        """Test the pipeline is validated before running"""
+
+        pipeline = cyclic_pipeline()
+        with self.assertRaisesRegex(PipelineValidationError, 'cyclic'):
+            pipeline.run_async()
+
+    def test_not_finished_while_running(self) -> None:
+        """Test the pipeline is not marked as finished while it is still executing"""
+
+        pipeline = valid_pipeline()
+        pipeline.run_async()
+        self.assertFalse(pipeline.is_finished())
+        sleep(6)  # Let any child processes finish running
+        self.assertTrue(pipeline.is_finished())
+
+
+class Run(TestCase):
+    """Test the ``run`` method"""
+
+    def test_validates_before_run(self) -> None:
+        """Test the pipeline is validated before running"""
+
+        pipeline = cyclic_pipeline()
+        with self.assertRaisesRegex(PipelineValidationError, 'cyclic'):
+            pipeline.run()
+
+    def test_marked_as_finished(self) -> None:
+        """Test the pipeline registers as finished after it finishes executing"""
+
+        pipeline = valid_pipeline()
+        pipeline.run()
+        self.assertTrue(pipeline.is_finished())
+
+
 class Kill(TestCase):
     """Test the termination of processes via the ``kill`` method"""
 
