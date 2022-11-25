@@ -36,12 +36,18 @@ class Pipeline:
         if self._is_cyclic():
             raise PipelineValidationError('The analysis pipeline has a cyclical connection')
 
+        if self._isolated_nodes():
+            raise PipelineValidationError('The analysis pipeline disconnected nodes')
+
     def _is_cyclic_helper(self, node: Node, visited, recursive_stack: Dict[Node, bool]) -> bool:
         """Recursive helper function for determining if a graph is cyclic
 
         Args:
-            node: The current node being checked for a cycle
+            node: The current node being visited
             recursive_stack: Dictionary used for tracking which nodes have been visited
+
+        Returns:
+            If a cycle has been discovered
         """
 
         # Mark the node is visited
@@ -74,6 +80,34 @@ class Pipeline:
                 return True
 
         return False
+
+    def _isolated_nodes_helper(self, node: Node, recursive_stack: Dict[Node, bool], direction) -> None:
+        """Helper function for a traditional depth first search
+
+        Args:
+            node: The current node being visited
+            recursive_stack: Dictionary used for tracking which nodes have been visited
+            direction: Visit nodes in the downstream (``True``) or upstream (``False``) direction
+        """
+
+        recursive_stack[node] = True
+        if direction:
+            neighbors = node.downstream_nodes()
+
+        else:
+            neighbors = node.upstream_nodes()
+
+        for neighbor in neighbors:
+            self._isolated_nodes_helper(neighbor, recursive_stack, direction)
+
+    def _isolated_nodes(self) -> bool:
+        """Return whether the pipeline has any isolated nodes"""
+
+        recursive_stack = {node: False for node in self._nodes}
+        self._isolated_nodes_helper(self._nodes[0], recursive_stack, True)
+        self._isolated_nodes_helper(self._nodes[0], recursive_stack, False)
+
+        return not all(recursive_stack.values())
 
     def get_all_nodes(self) -> Tuple[Node, ...]:
         """Return all nodes assigned to the parent pipeline"""

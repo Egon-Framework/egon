@@ -38,6 +38,14 @@ def cyclic_pipeline() -> Pipeline:
     return pipe
 
 
+def disconnected_pipeline() -> Pipeline:
+    """Return a cyclic pipeline with two interconnected nodes"""
+
+    pipe = valid_pipeline()
+    pipe.d3 = pipe.create_node(Dummy, num_processes=1, name='d3')
+    return pipe
+
+
 class Validation(TestCase):
     """Tests the ``validation`` method"""
 
@@ -51,5 +59,10 @@ class Validation(TestCase):
         """Test an error is raised for a cyclic pipeline"""
 
         with self.assertRaisesRegex(PipelineValidationError, 'cyclic'):
-            pipe = cyclic_pipeline()
-            pipe.validate()
+            cyclic_pipeline().validate()
+
+    def test_disconnected_error(self) -> None:
+        """Test an error is raised for a disconnected pipeline"""
+
+        with self.assertRaisesRegex(PipelineValidationError, 'disconnected nodes'):
+            disconnected_pipeline().validate()
