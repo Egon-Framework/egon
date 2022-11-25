@@ -1,5 +1,6 @@
-from typing import Tuple, Type
+from typing import Dict, Tuple, Type
 
+from .exceptions import PipelineValidationError
 from .nodes import Node
 
 
@@ -31,6 +32,48 @@ class Pipeline:
         Raises:
             PipelineValidationError: For an invalid pipeline instance
         """
+
+        if self._is_cyclic():
+            raise PipelineValidationError('The analysis pipeline has a cyclical connection')
+
+    def _is_cyclic_helper(self, node: Node, visited, recursive_stack: Dict[Node, bool]) -> bool:
+        """Recursive helper function for determining if a graph is cyclic
+
+        Args:
+            node: The current node being checked for a cycle
+            recursive_stack: Dictionary used for tracking which nodes have been visited
+        """
+
+        # Mark the node is visited
+        visited[node] = True
+        recursive_stack[node] = True
+
+        # Recursively check downstream nodes
+        for downstream in node.downstream_nodes():
+            if not visited[downstream]:
+                if self._is_cyclic_helper(downstream, visited, recursive_stack):
+                    return True
+
+            elif recursive_stack[downstream]:
+                return True
+
+        # Undo marking the current node
+        recursive_stack[node] = False
+        return False
+
+    def _is_cyclic(self) -> bool:
+        """Return whether a cyclic connection exists between nodes"""
+
+        # Track which nodes have been visited already
+        visited = {node: False for node in self._nodes}
+        recursive_stack = {node: False for node in self._nodes}
+
+        # Iterate over all nodes and check if that node is part of a cycle
+        for node in self._nodes:
+            if not visited[node] and self._is_cyclic_helper(node, visited, recursive_stack):
+                return True
+
+        return False
 
     def get_all_nodes(self) -> Tuple[Node, ...]:
         """Return all nodes assigned to the parent pipeline"""
