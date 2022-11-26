@@ -10,7 +10,7 @@ class TestNode(Node):
     """Dummy node object for running tests"""
 
     def action(self):
-        """"""
+        """Implements method required by abstract parent class"""
 
 
 class NameAssignment(TestCase):
