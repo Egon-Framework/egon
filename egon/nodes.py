@@ -15,7 +15,7 @@ from .multiprocessing import MultiprocessingEngine
 class Node(abc.ABC):
     """Abstract base class for constructing analysis nodes"""
 
-    def __init__(self, num_processes: int, name: str = None) -> None:
+    def __init__(self, num_processes: int = 1, name: str = None) -> None:
         """Instantiate a new pipeline node
 
         Child classes should extend this method to define node inputs and outputs.

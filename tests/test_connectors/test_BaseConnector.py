@@ -35,7 +35,7 @@ class ParentNode(TestCase):
     def test_parent_node_returned(self) -> None:
         """Test the parent node is returned by the ``parent_node`` attribute"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = BaseConnector(parent_node=node)
         self.assertIs(node, connector.parent_node)
 

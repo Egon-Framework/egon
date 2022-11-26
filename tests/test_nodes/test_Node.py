@@ -20,12 +20,12 @@ class NameAssignment(TestCase):
     def test_defaults_to_class_name(self) -> None:
         """Test the default node name matches the class name"""
 
-        self.assertEqual('TestNode', TestNode(num_processes=1).name)
+        self.assertEqual('TestNode', TestNode().name)
 
     def test_custom_name(self) -> None:
         """Test custom names are assigned to the ``name`` attribute"""
 
-        node = TestNode(num_processes=1, name='test_name')
+        node = TestNode(name='test_name')
         self.assertEqual('test_name', node.name)
 
 
@@ -89,21 +89,21 @@ class CreateInput(TestCase):
     def test_parent_node_assignment(self) -> None:
         """Test the node is attached to the connector as a parent"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = node.create_input()
         self.assertIs(node, connector.parent_node)
 
     def test_name_assignment(self) -> None:
         """Test the connector is created with the given name"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = node.create_input('test-name')
         self.assertIs('test-name', connector.name)
 
     def test_size_assignment(self) -> None:
         """Test the connector is created with the given maximum size"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = node.create_input(maxsize=15)
         self.assertIs(15, connector.maxsize)
 
@@ -114,14 +114,14 @@ class CreateOutput(TestCase):
     def test_parent_node_assignment(self) -> None:
         """Test the node is attached to the connector as a parent"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = node.create_output()
         self.assertIs(node, connector.parent_node)
 
     def test_name_assignment(self) -> None:
         """Test the connector is created with the given name"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         connector = node.create_output('test-name')
         self.assertIs('test-name', connector.name)
 
@@ -132,7 +132,7 @@ class InputConnectors(TestCase):
     def test_returns_all_inputs(self) -> None:
         """Test node inputs are returned as a tuple"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         node.input1 = node.create_input()
         node.input2 = node.create_input()
         node.output = node.create_output()
@@ -142,7 +142,7 @@ class InputConnectors(TestCase):
     def test_no_inputs_returns_empty(self) -> None:
         """Test the return value is empty for nodes with no inputs"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         self.assertEqual(tuple(), node.input_connectors())
 
 
@@ -152,7 +152,7 @@ class OutputConnectors(TestCase):
     def test_returns_all_outputs(self) -> None:
         """Test node outputs are returned as a tuple"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         node.input = node.create_input()
         node.output1 = node.create_output()
         node.output2 = node.create_output()
@@ -162,7 +162,7 @@ class OutputConnectors(TestCase):
     def test_no_outputs_returns_empty(self) -> None:
         """Test the return value is empty for nodes with no outputs"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         self.assertEqual(tuple(), node.output_connectors())
 
 
@@ -173,9 +173,9 @@ class UpstreamNodes(TestCase):
         """Test upstream nodes are returned for multiple upstreams connected by multiple inputs"""
 
         # Connect two upstream nodes to a single downstream node
-        upstream1 = TestNode(num_processes=1, name='upstream1')
-        upstream2 = TestNode(num_processes=1, name='upstream2')
-        downstream = TestNode(num_processes=1, name='downstream')
+        upstream1 = TestNode(name='upstream1')
+        upstream2 = TestNode(name='upstream2')
+        downstream = TestNode(name='downstream')
 
         upstream1.create_output().connect(downstream.create_input())
         upstream2.create_output().connect(downstream.create_input())
@@ -186,9 +186,9 @@ class UpstreamNodes(TestCase):
     def test_shared_input(self) -> None:
         """Test upstream nodes are returned for multiple upstreams connected by a shared input"""
 
-        upstream1 = TestNode(num_processes=1, name='upstream1')
-        upstream2 = TestNode(num_processes=1, name='upstream2')
-        downstream = TestNode(num_processes=1, name='downstream')
+        upstream1 = TestNode(name='upstream1')
+        upstream2 = TestNode(name='upstream2')
+        downstream = TestNode(name='downstream')
 
         downstream_input = downstream.create_input()
         upstream1.create_output().connect(downstream_input)
@@ -199,7 +199,7 @@ class UpstreamNodes(TestCase):
     def test_empty_for_no_upstream(self) -> None:
         """Test the return value is empty when no upstream nodes are connected"""
 
-        self.assertEqual(tuple(), TestNode(num_processes=1).upstream_nodes())
+        self.assertEqual(tuple(), TestNode().upstream_nodes())
 
 
 class DownstreamNodes(TestCase):
@@ -209,9 +209,9 @@ class DownstreamNodes(TestCase):
         """Test downstream nodes are returned for multiple downstreams connected by multiple output"""
 
         # Connect a single upstream node to two downstream nodes
-        upstream = TestNode(num_processes=1, name='upstream')
-        downstream1 = TestNode(num_processes=1, name='downstream1')
-        downstream2 = TestNode(num_processes=1, name='downstream2')
+        upstream = TestNode(name='upstream')
+        downstream1 = TestNode(name='downstream1')
+        downstream2 = TestNode(name='downstream2')
 
         upstream.create_output().connect(downstream1.create_input())
         upstream.create_output().connect(downstream2.create_input())
@@ -222,9 +222,9 @@ class DownstreamNodes(TestCase):
     def test_shared_output(self) -> None:
         """Test downstream nodes are returned for multiple downstreams connected by a shared output"""
 
-        upstream = TestNode(num_processes=1, name='upstream')
-        downstream1 = TestNode(num_processes=1, name='downstream1')
-        downstream2 = TestNode(num_processes=1, name='downstream2')
+        upstream = TestNode(name='upstream')
+        downstream1 = TestNode(name='downstream1')
+        downstream2 = TestNode(name='downstream2')
 
         upstream_output = upstream.create_output()
         upstream_output.connect(downstream1.create_input())
@@ -235,7 +235,7 @@ class DownstreamNodes(TestCase):
     def test_empty_for_no_downstream(self) -> None:
         """Test the return value is empty when no downstream nodes are connected"""
 
-        self.assertEqual(tuple(), TestNode(num_processes=1).downstream_nodes())
+        self.assertEqual(tuple(), TestNode().downstream_nodes())
 
 
 class Validate(TestCase):
@@ -245,12 +245,12 @@ class Validate(TestCase):
         """Test a ``NodeValidationError`` is raised for nodes without any connectors"""
 
         with self.assertRaisesRegex(NodeValidationError, 'Node has no input or output connectors'):
-            TestNode(num_processes=1).validate()
+            TestNode().validate()
 
     def test_unconnected_input_error(self):
         """Test a ``NodeValidationError`` is raised for nodes with unconnected inputs"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         node.create_input()
 
         with self.assertRaisesRegex(NodeValidationError, 'Node has an unconnected input'):
@@ -259,7 +259,7 @@ class Validate(TestCase):
     def test_unconnected_output_error(self):
         """Test a ``NodeValidationError`` is raised for nodes with unconnected outputs"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         node.create_output()
 
         with self.assertRaisesRegex(NodeValidationError, 'Node has an unconnected output'):
@@ -269,8 +269,8 @@ class Validate(TestCase):
     def test_valid_nodes_validate() -> None:
         """Test connected nodes validate successfully"""
 
-        node1 = TestNode(num_processes=1)
-        node2 = TestNode(num_processes=1)
+        node1 = TestNode()
+        node2 = TestNode()
         node1.create_output().connect(node2.create_input())
         node1.validate()
         node2.validate()
@@ -303,12 +303,12 @@ class IsFinished(TestCase):
     def test_false_before_execution(self) -> None:
         """Test the return value is ``False`` before execution"""
 
-        self.assertFalse(TestNode(num_processes=1).is_finished())
+        self.assertFalse(TestNode().is_finished())
 
     def test_true_after_execution(self) -> None:
         """Test the return value is ``True`` after execution finishes"""
 
-        node = TestNode(num_processes=1)
+        node = TestNode()
         node.execute()
         self.assertTrue(node.is_finished())
 
@@ -320,13 +320,13 @@ class IsExpectingData(TestCase):
         """Create and connect two upstream nodes to a single downstream"""
 
         # Create upstream nodes each with a single output
-        self.upstream1 = TestNode(num_processes=1)
-        self.upstream2 = TestNode(num_processes=1)
+        self.upstream1 = TestNode()
+        self.upstream2 = TestNode()
         self.upstream1.output = self.upstream1.create_output()
         self.upstream2.output = self.upstream2.create_output()
 
         # Create a downstream node with a single input
-        self.downstream = TestNode(num_processes=1)
+        self.downstream = TestNode()
         self.downstream.input = self.downstream.create_input()
 
         # Connect the nodes together
@@ -390,7 +390,7 @@ class StringRepresentation(TestCase):
         """Test nodes include name and ID info when cast to a string"""
 
         node_name = 'my_node'
-        node = TestNode(num_processes=1, name=node_name)
+        node = TestNode(name=node_name)
 
         expected_string = f'<TestNode(name={node_name}) object at {hex(id(node))}>'
         self.assertEqual(expected_string, str(node))
@@ -398,5 +398,5 @@ class StringRepresentation(TestCase):
     def test_repr_matches_string(self) -> None:
         """Test the ``str`` and ``repr`` strings are the same"""
 
-        node = TestNode(num_processes=1, name='my_node')
+        node = TestNode(name='my_node')
         self.assertEqual(repr(node), str(node))
