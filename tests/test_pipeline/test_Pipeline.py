@@ -20,10 +20,10 @@ def valid_pipeline() -> Pipeline:
     """Return a valid pipeline with two connected nodes"""
 
     pipe = Pipeline()
-    pipe.d1 = pipe.create_node(Dummy, num_processes=1, name='d1')
+    pipe.d1 = pipe.create_node(Dummy, name='d1')
     pipe.d1.out = pipe.d1.create_output()
 
-    pipe.d2 = pipe.create_node(Dummy, num_processes=1, name='d2')
+    pipe.d2 = pipe.create_node(Dummy, name='d2')
     pipe.d2.inp = pipe.d2.create_input()
 
     pipe.d1.out.connect(pipe.d2.inp)
@@ -44,7 +44,7 @@ def disconnected_pipeline() -> Pipeline:
     """Return a cyclic pipeline with two interconnected nodes"""
 
     pipe = valid_pipeline()
-    pipe.d3 = pipe.create_node(Dummy, num_processes=1, name='d3')
+    pipe.d3 = pipe.create_node(Dummy, name='d3')
     return pipe
 
 
