@@ -51,6 +51,25 @@ class ProcessAllocation(TestCase):
             TestNode(num_processes=0)
 
 
+class DynamicConnectorAssignment(TestCase):
+    """Test dynamic connector creation from class attributes"""
+
+    def test_connector_assignment(self) -> None:
+        """Test connectors are created dynamically from class attributes"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with two inputs and two outputs"""
+
+            egon_inputs = ('input1', 'input2')
+            egon_outputs = ('output1', 'output2')
+
+        node = DynamicTestNode()
+        self.assertTrue(hasattr(node, 'input1'))
+        self.assertTrue(hasattr(node, 'input2'))
+        self.assertTrue(hasattr(node, 'output1'))
+        self.assertTrue(hasattr(node, 'output2'))
+
+
 class SetNumProcesses(TestCase):
     """Test setting/getting the number of node processes"""
 

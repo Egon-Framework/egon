@@ -38,11 +38,7 @@ for i in ODD_INPUT_VALUES:
 class EvenNumberGenerator(Node):
     """Pipeline node for generating even integers"""
 
-    def __init__(self, num_processes: int = 1) -> None:
-        """Define a pipeline node with a single output"""
-
-        super().__init__(num_processes=num_processes)
-        self.output = self.create_output()
+    egon_outputs = ('output',)
 
     def action(self) -> None:
         """Populate the node output with even integers"""
@@ -58,11 +54,7 @@ class EvenNumberGenerator(Node):
 class OddNumberGenerator(Node):
     """Pipeline node for generating odd integers"""
 
-    def __init__(self, num_processes: int = 1) -> None:
-        """Define a pipeline node with a single output"""
-
-        super().__init__(num_processes=num_processes)
-        self.output = self.create_output()
+    egon_outputs = ('output',)
 
     def action(self) -> None:
         """Populate the node output with odd integers"""
@@ -78,13 +70,8 @@ class OddNumberGenerator(Node):
 class NumberSorter(Node):
     """Sort numbers into different outputs depending on whether they are odd or even"""
 
-    def __init__(self, num_processes: int = 1) -> None:
-        """Define """
-
-        super().__init__(num_processes=num_processes)
-        self.input = self.create_input()
-        self.even_output = self.create_output('Even Numbers')
-        self.odd_output = self.create_output('Odd Numbers')
+    egon_inputs = ('input',)
+    egon_outputs = ('even_output', 'odd_output')
 
     def action(self) -> None:
         """Sort numbers into odds and evens"""
@@ -100,11 +87,7 @@ class NumberSorter(Node):
 class EvenNumberCollector(Node):
     """Load even numbers into a global queue"""
 
-    def __init__(self, num_processes: int = 1) -> None:
-        """Define a pipeline node with a single input"""
-
-        super().__init__(num_processes=num_processes)
-        self.input = self.create_input()
+    egon_inputs = ('input',)
 
     def action(self) -> None:
         """Load pipeline values into the ``EVEN_OUTPUT_QUEUE`` collection"""
@@ -116,11 +99,7 @@ class EvenNumberCollector(Node):
 class OddNumberCollector(Node):
     """Load odd numbers into a global queue"""
 
-    def __init__(self, num_processes: int = 1) -> None:
-        """Define a pipeline node with a single input"""
-
-        super().__init__(num_processes=num_processes)
-        self.input = self.create_input()
+    egon_inputs = ('input',)
 
     def action(self) -> None:
         """Load pipeline values into the ``ODD_OUTPUT_QUEUE`` collection"""

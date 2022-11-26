@@ -15,6 +15,9 @@ from .multiprocessing import MultiprocessingEngine
 class Node(abc.ABC):
     """Abstract base class for constructing analysis nodes"""
 
+    egon_inputs: Tuple[str] = tuple()
+    egon_outputs: Tuple[str] = tuple()
+
     def __init__(self, num_processes: int = 1, name: str = None) -> None:
         """Instantiate a new pipeline node
 
@@ -29,6 +32,13 @@ class Node(abc.ABC):
         self._engine = MultiprocessingEngine(num_processes, self._execute_helper)
         self._inputs = []
         self._outputs = []
+
+        # Dynamically create input/output connectors based on class attributes
+        for output_spec in self.egon_outputs:
+            setattr(self, output_spec, self.create_output(output_spec))
+
+        for input_spec in self.egon_inputs:
+            setattr(self, input_spec, self.create_input(input_spec))
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
