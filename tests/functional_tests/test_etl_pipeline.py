@@ -95,13 +95,23 @@ class AddingPipeline(Pipeline):
 class TestPipelineThroughput(TestCase):
     """Test data is successfully passed through the entire pipeline"""
 
-    def runTest(self) -> None:
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Run the pipeline being tested"""
+
+        cls.pipeline = AddingPipeline()
+        cls.pipeline.run()
+
+    def test_data_integrity(self) -> None:
         """Test all input values are present in the pipeline output"""
 
-        AddingPipeline().run()
-
         output_as_list = []
-        while OUTPUT_QUEUE.qsize() != 0:
+        while OUTPUT_QUEUE.qsize():
             output_as_list.append(OUTPUT_QUEUE.get())
 
         self.assertCountEqual(INPUT_VALUES, output_as_list)
+
+    def test_pipeline_is_finished(self) -> None:
+        """Test the pipeline is marked as finished after execution"""
+
+        self.assertTrue(self.pipeline.is_finished())

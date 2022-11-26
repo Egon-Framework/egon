@@ -154,19 +154,29 @@ class EvenOddPipeline(Pipeline):
 class TestPipelineThroughput(TestCase):
     """Test data is successfully passed through the entire pipeline"""
 
-    def runTest(self) -> None:
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Run the pipeline being tested"""
+
+        cls.pipeline = EvenOddPipeline()
+        cls.pipeline.run()
+
+    def test_data_integrity(self) -> None:
         """Test all input values are present in the pipeline output"""
 
-        EvenOddPipeline().run()
-
         even_numbers = []
-        while EVEN_OUTPUT_QUEUE.qsize() != 0:
+        while EVEN_OUTPUT_QUEUE.qsize():
             even_numbers.append(EVEN_OUTPUT_QUEUE.get())
 
         self.assertCountEqual(EVEN_INPUT_VALUES, even_numbers)
 
         odd_numbers = []
-        while ODD_OUTPUT_QUEUE.qsize() != 0:
+        while ODD_OUTPUT_QUEUE.qsize():
             odd_numbers.append(ODD_OUTPUT_QUEUE.get())
 
         self.assertCountEqual(ODD_INPUT_VALUES, odd_numbers)
+
+    def test_pipeline_is_finished(self) -> None:
+        """Test the pipeline is marked as finished after execution"""
+
+        self.assertTrue(self.pipeline.is_finished())
