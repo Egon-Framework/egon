@@ -2,6 +2,6 @@
 
 from .connectors import InputConnector, OutputConnector
 from .nodes import Node
-from .pipeline import Pipeline
+from .pipelines import Pipeline
 
 __version__ = '0.0.0'
