@@ -133,16 +133,26 @@ class Pipeline:
 
         return all(node.is_finished() for node in self._nodes)
 
-    def run(self) -> None:
-        """Run the pipeline and wait for it to exit before continuing execution"""
+    def run(self, skip_validation: bool = False) -> None:
+        """Run the pipeline and wait for it to exit before continuing execution
 
-        self.run_async()
+        Args:
+            skip_validation: Do not validate the pipeline before running it
+        """
+
+        self.run_async(skip_validation=skip_validation)
         self.join()
 
-    def run_async(self) -> None:
-        """Run the pipeline asynchronously"""
+    def run_async(self, skip_validation: bool = False) -> None:
+        """Run the pipeline asynchronously
 
-        self.validate()
+        Args:
+            skip_validation: Do not validate the pipeline before running it
+        """
+
+        if not skip_validation:
+            self.validate()
+
         for node in self.get_all_nodes():
             node._engine.run_async()
 
