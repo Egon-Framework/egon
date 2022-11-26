@@ -2,10 +2,12 @@
 execution of multiple analysis nodes.
 """
 
-from typing import Dict, Tuple, Type
+from typing import Dict, Tuple, Type, TypeVar
 
 from .exceptions import PipelineValidationError
 from .nodes import Node
+
+NODE_TYPE = TypeVar('NODE_TYPE', bound=Node)
 
 
 class Pipeline:
@@ -19,7 +21,7 @@ class Pipeline:
 
         self._nodes = []
 
-    def create_node(self, node_class: Type[Node], /, *args, **kwargs) -> Node:
+    def create_node(self, node_class: Type[NODE_TYPE], /, *args, **kwargs) -> NODE_TYPE:
         """Create a new analysis node and attach it to the current pipeline
 
         Args:
