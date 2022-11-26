@@ -27,6 +27,7 @@ jobs:
         run: pip install .[tests]
 
       - name: Run tests with coverage
+        timeout-minutes: 2
         run: |
           coverage run -m unittest discover 
           coverage report --omit="tests/*"
