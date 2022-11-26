@@ -1,4 +1,11 @@
-"""Test package behavior against a traditional ETL style pipeline."""
+"""Test package behavior against a traditional ETL style pipeline.
+
+This test builds and executes an ETL pipeline with three nodes:
+
+1. The extract node fetches data from a global queue
+2. The transform step passes along the data unmodified
+3. The load step puts data into a global queue
+"""
 
 from multiprocessing import Queue
 from queue import Empty
@@ -25,7 +32,7 @@ class Extract(Node):
         self.output = self.create_output()
 
     def action(self) -> None:
-        """Load values from ``TEST_VALUES`` into the pipeline"""
+        """Load values from the ``INPUT_QUEUE`` collection into the pipeline"""
 
         while True:
             try:
@@ -62,7 +69,7 @@ class Load(Node):
         self.input = self.create_input()
 
     def action(self) -> None:
-        """Load pipeline values into the ``GLOBAL_QUEUE`` collection"""
+        """Load pipeline values into the ``OUTPUT_QUEUE`` collection"""
 
         for val in self.input.iter_get():
             OUTPUT_QUEUE.put(val)
