@@ -35,10 +35,26 @@ class Node(abc.ABC):
 
         # Dynamically create input/output connectors based on class attributes
         for output_spec in self.egon_outputs:
+            self._raise_for_invalid_identifier(output_spec)
             setattr(self, output_spec, self.create_output(output_spec))
 
         for input_spec in self.egon_inputs:
+            self._raise_for_invalid_identifier(input_spec)
             setattr(self, input_spec, self.create_input(input_spec))
+
+    @staticmethod
+    def _raise_for_invalid_identifier(val: str) -> None:
+        """Raise an error if the given string is not a valid python identifier
+
+        Args:
+            val: The string to validate
+
+        Raises:
+            ValueError: For an invalid identifier
+        """
+
+        if not val.isidentifier():
+            raise ValueError(f'Invalid name for connector: {val}')
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""

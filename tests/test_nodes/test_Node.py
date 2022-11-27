@@ -58,7 +58,7 @@ class DynamicConnectorAssignment(TestCase):
         """Test connectors are created dynamically from class attributes"""
 
         class DynamicTestNode(TestNode):
-            """Dummy node with two inputs and two outputs"""
+            """Dummy node with dynamic connectors"""
 
             egon_inputs = ('input1', 'input2')
             egon_outputs = ('output1', 'output2')
@@ -68,6 +68,51 @@ class DynamicConnectorAssignment(TestCase):
         self.assertTrue(hasattr(node, 'input2'))
         self.assertTrue(hasattr(node, 'output1'))
         self.assertTrue(hasattr(node, 'output2'))
+
+    def test_no_max_size(self) -> None:
+        """Test dynamically created input connectors have no maximum size"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            egon_inputs = ('input1',)
+
+        node = DynamicTestNode()
+        self.assertFalse(node.input1.maxsize)
+
+    def test_node_names(self) -> None:
+        """Test nodes are assigned their given names"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            egon_inputs = ('first_input', 'second_input')
+
+        node = DynamicTestNode()
+        self.assertEqual('first_input', node.first_input.name)
+        self.assertEqual('second_input', node.second_input.name)
+
+    def test_whitespace_name_error(self) -> None:
+        """Test a ``ValueError`` is raised for connector names with whitespace"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            egon_inputs = ('first input',)
+
+        with self.assertRaises(ValueError):
+            DynamicTestNode()
+
+    def test_numeric_name_error(self) -> None:
+        """Test a ``ValueError`` is raised for connector names starting with a number"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            egon_inputs = ('1input',)
+
+        with self.assertRaises(ValueError):
+            DynamicTestNode()
 
 
 class SetNumProcesses(TestCase):
