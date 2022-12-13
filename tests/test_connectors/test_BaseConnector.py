@@ -20,13 +20,22 @@ class NameAssignment(TestCase):
         """Test the default connector name matches the memory ID"""
 
         connector = BaseConnector()
-        self.assertEqual(hex(id(connector)), connector.name)
+        self.assertEqual(connector.id, connector.name)
 
     def test_custom_name(self) -> None:
         """Test custom names are assigned to the ``name`` attribute"""
 
         connector = BaseConnector(name='test_name')
         self.assertEqual('test_name', connector.name)
+
+
+class IDAssignment(TestCase):
+    """Test the generation of instance ID values"""
+
+    def test_is_uuid_format(self) -> None:
+        """Test the instance ID is in UUID4 format"""
+
+        self.assertRegex(TestNode().id, r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}')
 
 
 class ParentNode(TestCase):
@@ -49,7 +58,7 @@ class StringRepresentation(TestCase):
         connector_name = 'my_connector'
         connector = BaseConnector(name=connector_name)
 
-        expected_string = f'<BaseConnector(name={connector_name}) object at {hex(id(connector))}>'
+        expected_string = f'<BaseConnector(name={connector_name}) object at {connector.id}>'
         self.assertEqual(expected_string, str(connector))
 
     def test_repr_matches_string(self) -> None:
