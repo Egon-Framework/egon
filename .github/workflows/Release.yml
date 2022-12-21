@@ -1,0 +1,43 @@
+name: PyPi
+
+on:
+  release:
+    types: [ released ]
+
+jobs:
+  test:
+    name: Run Tests
+    uses: ./.github/workflows/Unittests.yml
+    secrets: inherit
+
+  build:
+    name: Build Source Distribution
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Set package version
+        run: |
+          tag=${{github.ref}}
+          poetry version "${tag:1}"
+
+      - name: Build package
+        run: poetry build -v
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+          user: ${{ secrets.PYPI_USER }}
+          password: ${{ secrets.PYPI_PASSWORD }}
