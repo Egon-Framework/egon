@@ -15,7 +15,7 @@ from multiprocessing import Queue
 from queue import Empty
 from unittest import TestCase
 
-from egon import Node, Pipeline
+from egon import Node, Pipeline, OutputConnector, InputConnector
 
 # Input queues for feeding even/odd numbers into the pipeline
 EVEN_INPUT_QUEUE = Queue()
@@ -38,7 +38,7 @@ for i in ODD_INPUT_VALUES:
 class EvenNumberGenerator(Node):
     """Pipeline node for generating even integers"""
 
-    egon_outputs = ('output',)
+    output: OutputConnector
 
     def action(self) -> None:
         """Populate the node output with even integers"""
@@ -54,7 +54,7 @@ class EvenNumberGenerator(Node):
 class OddNumberGenerator(Node):
     """Pipeline node for generating odd integers"""
 
-    egon_outputs = ('output',)
+    output: OutputConnector
 
     def action(self) -> None:
         """Populate the node output with odd integers"""
@@ -70,8 +70,9 @@ class OddNumberGenerator(Node):
 class NumberSorter(Node):
     """Sort numbers into different outputs depending on whether they are odd or even"""
 
-    egon_inputs = ('input',)
-    egon_outputs = ('even_output', 'odd_output')
+    input: InputConnector
+    even_output: OutputConnector
+    odd_output: OutputConnector
 
     def action(self) -> None:
         """Sort numbers into odds and evens"""
@@ -87,7 +88,7 @@ class NumberSorter(Node):
 class EvenNumberCollector(Node):
     """Load even numbers into a global queue"""
 
-    egon_inputs = ('input',)
+    input: InputConnector
 
     def action(self) -> None:
         """Load pipeline values into the ``EVEN_OUTPUT_QUEUE`` collection"""
@@ -99,7 +100,7 @@ class EvenNumberCollector(Node):
 class OddNumberCollector(Node):
     """Load odd numbers into a global queue"""
 
-    egon_inputs = ('input',)
+    input: InputConnector
 
     def action(self) -> None:
         """Load pipeline values into the ``ODD_OUTPUT_QUEUE`` collection"""

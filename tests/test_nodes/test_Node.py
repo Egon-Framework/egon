@@ -3,7 +3,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from egon import Node
+from egon import Node, InputConnector, OutputConnector
 from egon.exceptions import NodeValidationError
 
 
@@ -60,14 +60,17 @@ class DynamicConnectorAssignment(TestCase):
         class DynamicTestNode(TestNode):
             """Dummy node with dynamic connectors"""
 
-            egon_inputs = ('input1', 'input2')
-            egon_outputs = ('output1', 'output2')
+            input1: InputConnector
+            input2: InputConnector
+            output1: OutputConnector
+            output2: OutputConnector
 
         node = DynamicTestNode()
-        self.assertTrue(hasattr(node, 'input1'))
-        self.assertTrue(hasattr(node, 'input2'))
-        self.assertTrue(hasattr(node, 'output1'))
-        self.assertTrue(hasattr(node, 'output2'))
+        for attr in ('input1', 'input2', 'output1', 'output2'):
+            self.assertTrue(hasattr(node, attr), f'Node is missing a dynamically defined connector {attr}')
+
+            parent_node = getattr(node, attr).parent_node
+            self.assertIs(parent_node, node, f'Connector {attr} is not assigned to the correct parent')
 
     def test_no_max_size(self) -> None:
         """Test dynamically created input connectors have no maximum size"""
@@ -75,7 +78,7 @@ class DynamicConnectorAssignment(TestCase):
         class DynamicTestNode(TestNode):
             """Dummy node with dynamic connectors"""
 
-            egon_inputs = ('input1',)
+            input1: InputConnector
 
         node = DynamicTestNode()
         self.assertFalse(node.input1.maxsize)
@@ -86,33 +89,12 @@ class DynamicConnectorAssignment(TestCase):
         class DynamicTestNode(TestNode):
             """Dummy node with dynamic connectors"""
 
-            egon_inputs = ('first_input', 'second_input')
+            first_input: InputConnector
+            second_input: InputConnector
 
         node = DynamicTestNode()
         self.assertEqual('first_input', node.first_input.name)
         self.assertEqual('second_input', node.second_input.name)
-
-    def test_whitespace_name_error(self) -> None:
-        """Test a ``ValueError`` is raised for connector names with whitespace"""
-
-        class DynamicTestNode(TestNode):
-            """Dummy node with dynamic connectors"""
-
-            egon_inputs = ('first input',)
-
-        with self.assertRaises(ValueError):
-            DynamicTestNode()
-
-    def test_numeric_name_error(self) -> None:
-        """Test a ``ValueError`` is raised for connector names starting with a number"""
-
-        class DynamicTestNode(TestNode):
-            """Dummy node with dynamic connectors"""
-
-            egon_inputs = ('1input',)
-
-        with self.assertRaises(ValueError):
-            DynamicTestNode()
 
 
 class SetNumProcesses(TestCase):
@@ -190,7 +172,7 @@ class CreateOutput(TestCase):
         self.assertIs('test-name', connector.name)
 
 
-class InputConnectors(TestCase):
+class InputConnectorsGetter(TestCase):
     """Test the ``input_connectors`` method"""
 
     def test_returns_all_inputs(self) -> None:
@@ -210,7 +192,7 @@ class InputConnectors(TestCase):
         self.assertEqual(tuple(), node.input_connectors())
 
 
-class OutputConnectors(TestCase):
+class OutputConnectorsGetter(TestCase):
     """Test the ``output_connectors`` method"""
 
     def test_returns_all_outputs(self) -> None:

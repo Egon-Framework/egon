@@ -15,9 +15,6 @@ from .multiprocessing import MultiprocessingEngine
 class Node(abc.ABC):
     """Abstract base class for constructing analysis nodes"""
 
-    egon_inputs: Tuple[str] = tuple()
-    egon_outputs: Tuple[str] = tuple()
-
     def __init__(self, num_processes: int = 1, name: str = None) -> None:
         """Instantiate a new pipeline node
 
@@ -33,28 +30,19 @@ class Node(abc.ABC):
         self._inputs = []
         self._outputs = []
 
+        if hasattr(self, '__annotations__'):
+            self._create_dynamic_connections()
+
+    def _create_dynamic_connections(self) -> None:
+        """Dynamically create input and output connectors based on class annotations"""
+
         # Dynamically create input/output connectors based on class attributes
-        for output_spec in self.egon_outputs:
-            self._raise_for_invalid_identifier(output_spec)
-            setattr(self, output_spec, self.create_output(output_spec))
+        for connector_name, connector_type in self.__annotations__.items():
+            if connector_type is InputConnector:
+                setattr(self, connector_name, self.create_input(connector_name))
 
-        for input_spec in self.egon_inputs:
-            self._raise_for_invalid_identifier(input_spec)
-            setattr(self, input_spec, self.create_input(input_spec))
-
-    @staticmethod
-    def _raise_for_invalid_identifier(val: str) -> None:
-        """Raise an error if the given string is not a valid python identifier
-
-        Args:
-            val: The string to validate
-
-        Raises:
-            ValueError: For an invalid identifier
-        """
-
-        if not val.isidentifier():
-            raise ValueError(f'Invalid name for connector: {val}')
+            if connector_type is OutputConnector:
+                setattr(self, connector_name, self.create_output(connector_name))
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
