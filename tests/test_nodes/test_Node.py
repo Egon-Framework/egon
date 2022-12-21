@@ -3,7 +3,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from egon import Node
+from egon import Node, InputConnector, OutputConnector
 from egon.exceptions import NodeValidationError
 
 
@@ -49,6 +49,52 @@ class ProcessAllocation(TestCase):
 
         with self.assertRaises(ValueError):
             TestNode(num_processes=0)
+
+
+class DynamicConnectorAssignment(TestCase):
+    """Test dynamic connector creation from class attributes"""
+
+    def test_connector_assignment(self) -> None:
+        """Test connectors are created dynamically from class attributes"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            input1: InputConnector
+            input2: InputConnector
+            output1: OutputConnector
+            output2: OutputConnector
+
+        node = DynamicTestNode()
+        for attr in ('input1', 'input2', 'output1', 'output2'):
+            self.assertTrue(hasattr(node, attr), f'Node is missing a dynamically defined connector {attr}')
+
+            parent_node = getattr(node, attr).parent_node
+            self.assertIs(parent_node, node, f'Connector {attr} is not assigned to the correct parent')
+
+    def test_no_max_size(self) -> None:
+        """Test dynamically created input connectors have no maximum size"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            input1: InputConnector
+
+        node = DynamicTestNode()
+        self.assertFalse(node.input1.maxsize)
+
+    def test_node_names(self) -> None:
+        """Test nodes are assigned their given names"""
+
+        class DynamicTestNode(TestNode):
+            """Dummy node with dynamic connectors"""
+
+            first_input: InputConnector
+            second_input: InputConnector
+
+        node = DynamicTestNode()
+        self.assertEqual('first_input', node.first_input.name)
+        self.assertEqual('second_input', node.second_input.name)
 
 
 class SetNumProcesses(TestCase):
@@ -126,7 +172,7 @@ class CreateOutput(TestCase):
         self.assertIs('test-name', connector.name)
 
 
-class InputConnectors(TestCase):
+class InputConnectorsGetter(TestCase):
     """Test the ``input_connectors`` method"""
 
     def test_returns_all_inputs(self) -> None:
@@ -146,7 +192,7 @@ class InputConnectors(TestCase):
         self.assertEqual(tuple(), node.input_connectors())
 
 
-class OutputConnectors(TestCase):
+class OutputConnectorsGetter(TestCase):
     """Test the ``output_connectors`` method"""
 
     def test_returns_all_outputs(self) -> None:

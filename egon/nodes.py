@@ -38,6 +38,20 @@ class Node(abc.ABC):
 
         return self._id
 
+        if hasattr(self, '__annotations__'):
+            self._create_dynamic_connections()
+
+    def _create_dynamic_connections(self) -> None:
+        """Dynamically create input and output connectors based on class annotations"""
+
+        # Dynamically create input/output connectors based on class attributes
+        for connector_name, connector_type in self.__annotations__.items():
+            if connector_type is InputConnector:
+                setattr(self, connector_name, self.create_input(connector_name))
+
+            if connector_type is OutputConnector:
+                setattr(self, connector_name, self.create_output(connector_name))
+
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
 
