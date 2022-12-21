@@ -1,11 +1,10 @@
-[build-system]
-requires = ["setuptools>=64.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "egon"
-dynamic = ["version"]
+version = "0.0.0"  # Version is set automatically via CI
+authors = ["Daniel Perrefort", ]
 description = "A Python parallelization framework for easily building powerful data analysis networks."
+readme = "README.md"
+repository = "https://github.com/Egon-Framework/egon"
 keywords = ["parallel", "multiprocessing", "pipeline", "network", "framework"]
 classifiers = [
     "Intended Audience :: Developers",
@@ -17,18 +16,10 @@ classifiers = [
     "Topic :: Software Development",
     "Typing :: Typed"
 ]
-requires-python = ">=3.7"
-dependencies = []
 
-[[project.authors]]
-name = "Daniel Perrefort"
+[tool.poetry.dependencies]
+python = "^3.7"
 
-[project.readme]
-file = "README.md"
-content-type = "text/markdown"
-
-[project.optional-dependencies]
-tests = ["coverage", ]
-
-[tool.setuptools.dynamic]
-version = { attr = "egon.__version__" }
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
