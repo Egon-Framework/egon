@@ -11,6 +11,7 @@ single/slot style interface for connecting analysis nodes together.
 from __future__ import annotations
 
 import multiprocessing as mp
+import uuid
 from queue import Empty
 from typing import Any, Optional, Set, TYPE_CHECKING, Tuple
 
@@ -35,7 +36,7 @@ class BaseConnector:
         """
 
         # Identifying information for the instance
-        self._id = hex(id(self))
+        self._id = str(uuid.uuid4())
         self.name = str(name) if name else str(self._id)
 
         # The parent node
@@ -43,6 +44,12 @@ class BaseConnector:
 
         # Other connector objects connected to this instance
         self._connected_partners: Set[BaseConnector] = set()
+
+    @property
+    def id(self) -> str:
+        """Return the universally unique identifier for the parent node"""
+
+        return self._id
 
     @property
     def parent_node(self) -> Optional[Node]:

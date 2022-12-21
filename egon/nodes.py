@@ -5,6 +5,7 @@ pipeline.
 from __future__ import annotations
 
 import abc
+import uuid
 from typing import Tuple
 
 from .connectors import InputConnector, OutputConnector
@@ -29,6 +30,13 @@ class Node(abc.ABC):
         self._engine = MultiprocessingEngine(num_processes, self._execute_helper)
         self._inputs = []
         self._outputs = []
+        self._id = str(uuid.uuid4())
+
+    @property
+    def id(self) -> str:
+        """Return the universally unique identifier for the parent node"""
+
+        return self._id
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""

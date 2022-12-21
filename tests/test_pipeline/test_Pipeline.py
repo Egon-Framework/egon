@@ -48,6 +48,15 @@ def disconnected_pipeline() -> Pipeline:
     return pipe
 
 
+class IDAssignment(TestCase):
+    """Test the generation of instance ID values"""
+
+    def test_is_uuid_format(self) -> None:
+        """Test the instance ID is in UUID4 format"""
+
+        self.assertRegex(valid_pipeline().id, r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}')
+
+
 class Validation(TestCase):
     """Tests the ``validation`` method"""
 

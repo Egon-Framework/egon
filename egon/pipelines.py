@@ -2,6 +2,7 @@
 execution of multiple analysis nodes.
 """
 
+import uuid
 from typing import Dict, Tuple, Type, TypeVar
 
 from .exceptions import PipelineValidationError
@@ -20,6 +21,13 @@ class Pipeline:
         """
 
         self._nodes = []
+        self._id = str(uuid.uuid4())
+
+    @property
+    def id(self) -> str:
+        """Return the universally unique identifier for the parent node"""
+
+        return self._id
 
     def create_node(self, node_class: Type[NODE_TYPE], /, *args, **kwargs) -> NODE_TYPE:
         """Create a new analysis node and attach it to the current pipeline
