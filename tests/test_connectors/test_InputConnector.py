@@ -3,9 +3,8 @@
 from queue import Empty
 from unittest import TestCase
 
-from egon.connectors import InputConnector
+from egon import InputConnector, Node
 from egon.exceptions import MissingConnectionError
-from egon.nodes import Node
 
 
 class DummyUpstreamNode(Node):

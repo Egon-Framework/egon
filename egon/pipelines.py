@@ -2,10 +2,13 @@
 execution of multiple analysis nodes.
 """
 
-from typing import Dict, Tuple, Type
+import uuid
+from typing import Dict, Tuple, Type, TypeVar
 
 from .exceptions import PipelineValidationError
 from .nodes import Node
+
+NODE_TYPE = TypeVar('NODE_TYPE', bound=Node)
 
 
 class Pipeline:
@@ -18,8 +21,15 @@ class Pipeline:
         """
 
         self._nodes = []
+        self._id = str(uuid.uuid4())
 
-    def create_node(self, node_class: Type[Node], /, *args, **kwargs) -> Node:
+    @property
+    def id(self) -> str:
+        """Return the universally unique identifier for the parent node"""
+
+        return self._id
+
+    def create_node(self, node_class: Type[NODE_TYPE], /, *args, **kwargs) -> NODE_TYPE:
         """Create a new analysis node and attach it to the current pipeline
 
         Args:
@@ -95,32 +105,30 @@ class Pipeline:
 
         return False
 
-    def _isolated_nodes_helper(self, node: Node, recursive_stack: Dict[Node, bool], direction: bool) -> None:
+    def _isolated_nodes_helper(self, node: Node, recursive_stack: Dict[Node, bool]) -> None:
         """Helper function for a traditional depth first search
 
         Args:
             node: The current node being visited
             recursive_stack: Dictionary used for tracking which nodes have been visited
-            direction: Visit nodes in the downstream (``True``) or upstream (``False``) direction
         """
 
+        # Avoid checking graph branches multiple times by exiting if already been visited
+        if recursive_stack[node]:
+            return
+
         recursive_stack[node] = True
-        if direction:
-            neighbors = node.downstream_nodes()
+        for neighbor in node.downstream_nodes():
+            self._isolated_nodes_helper(neighbor, recursive_stack)
 
-        else:
-            neighbors = node.upstream_nodes()
-
-        for neighbor in neighbors:
-            self._isolated_nodes_helper(neighbor, recursive_stack, direction)
+        for neighbor in node.upstream_nodes():
+            self._isolated_nodes_helper(neighbor, recursive_stack)
 
     def _isolated_nodes(self) -> bool:
         """Return whether the pipeline has any isolated nodes"""
 
         recursive_stack = {node: False for node in self._nodes}
-        self._isolated_nodes_helper(self._nodes[0], recursive_stack, True)
-        self._isolated_nodes_helper(self._nodes[0], recursive_stack, False)
-
+        self._isolated_nodes_helper(self._nodes[0], recursive_stack)
         return not all(recursive_stack.values())
 
     def get_all_nodes(self) -> Tuple[Node, ...]:
@@ -133,14 +141,25 @@ class Pipeline:
 
         return all(node.is_finished() for node in self._nodes)
 
-    def run(self) -> None:
-        """Run the pipeline and wait for it to exit before continuing execution"""
+    def run(self, skip_validation: bool = False) -> None:
+        """Run the pipeline and wait for it to exit before continuing execution
 
-        self.run_async()
+        Args:
+            skip_validation: Do not validate the pipeline before running it
+        """
+
+        self.run_async(skip_validation=skip_validation)
         self.join()
 
-    def run_async(self) -> None:
-        """Run the pipeline asynchronously"""
+    def run_async(self, skip_validation: bool = False) -> None:
+        """Run the pipeline asynchronously
+
+        Args:
+            skip_validation: Do not validate the pipeline before running it
+        """
+
+        if not skip_validation:
+            self.validate()
 
         for node in self.get_all_nodes():
             node._engine.run_async()

@@ -3,9 +3,8 @@
 from time import sleep
 from unittest import TestCase
 
+from egon import Node, Pipeline
 from egon.exceptions import PipelineValidationError
-from egon.nodes import Node
-from egon.pipeline import Pipeline
 
 
 class Dummy(Node):
@@ -21,10 +20,10 @@ def valid_pipeline() -> Pipeline:
     """Return a valid pipeline with two connected nodes"""
 
     pipe = Pipeline()
-    pipe.d1 = pipe.create_node(Dummy, num_processes=1, name='d1')
+    pipe.d1 = pipe.create_node(Dummy, name='d1')
     pipe.d1.out = pipe.d1.create_output()
 
-    pipe.d2 = pipe.create_node(Dummy, num_processes=1, name='d2')
+    pipe.d2 = pipe.create_node(Dummy, name='d2')
     pipe.d2.inp = pipe.d2.create_input()
 
     pipe.d1.out.connect(pipe.d2.inp)
@@ -45,8 +44,17 @@ def disconnected_pipeline() -> Pipeline:
     """Return a cyclic pipeline with two interconnected nodes"""
 
     pipe = valid_pipeline()
-    pipe.d3 = pipe.create_node(Dummy, num_processes=1, name='d3')
+    pipe.d3 = pipe.create_node(Dummy, name='d3')
     return pipe
+
+
+class IDAssignment(TestCase):
+    """Test the generation of instance ID values"""
+
+    def test_is_uuid_format(self) -> None:
+        """Test the instance ID is in UUID4 format"""
+
+        self.assertRegex(valid_pipeline().id, r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}')
 
 
 class Validation(TestCase):
@@ -89,6 +97,44 @@ class IsFinished(TestCase):
 
     def test_true_after_run(self) -> None:
         """Test the return value is ``True`` for executed instances"""
+
+        pipeline = valid_pipeline()
+        pipeline.run()
+        self.assertTrue(pipeline.is_finished())
+
+
+class RunAsync(TestCase):
+    """Test the ``run_async`` method"""
+
+    def test_validates_before_run(self) -> None:
+        """Test the pipeline is validated before running"""
+
+        pipeline = cyclic_pipeline()
+        with self.assertRaisesRegex(PipelineValidationError, 'cyclic'):
+            pipeline.run_async()
+
+    def test_not_finished_while_running(self) -> None:
+        """Test the pipeline is not marked as finished while it is still executing"""
+
+        pipeline = valid_pipeline()
+        pipeline.run_async()
+        self.assertFalse(pipeline.is_finished())
+        sleep(6)  # Let any child processes finish running
+        self.assertTrue(pipeline.is_finished())
+
+
+class Run(TestCase):
+    """Test the ``run`` method"""
+
+    def test_validates_before_run(self) -> None:
+        """Test the pipeline is validated before running"""
+
+        pipeline = cyclic_pipeline()
+        with self.assertRaisesRegex(PipelineValidationError, 'cyclic'):
+            pipeline.run()
+
+    def test_marked_as_finished(self) -> None:
+        """Test the pipeline registers as finished after it finishes executing"""
 
         pipeline = valid_pipeline()
         pipeline.run()
