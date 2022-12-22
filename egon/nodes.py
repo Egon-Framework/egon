@@ -32,12 +32,6 @@ class Node(abc.ABC):
         self._outputs = []
         self._id = str(uuid.uuid4())
 
-    @property
-    def id(self) -> str:
-        """Return the universally unique identifier for the parent node"""
-
-        return self._id
-
         if hasattr(self, '__annotations__'):
             self._create_dynamic_connections()
 
@@ -51,6 +45,12 @@ class Node(abc.ABC):
 
             if connector_type is OutputConnector:
                 setattr(self, connector_name, self.create_output(connector_name))
+
+    @property
+    def id(self) -> str:
+        """Return the universally unique identifier for the parent node"""
+
+        return self._id
 
     def get_num_processes(self) -> int:
         """Return number of processes assigned to the analysis node"""
