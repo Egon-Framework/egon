@@ -181,8 +181,9 @@ class InputConnector(BaseConnector):
             timeout -= this_timeout
 
             try:
+                x = self._queue.get(timeout=this_timeout)
                 logging.info(f'Get operation for {self} successful')
-                return self._queue.get(timeout=this_timeout)
+                return x
 
             except (Empty, TimeoutError):
                 if self.parent_node and self.parent_node.is_expecting_data():
