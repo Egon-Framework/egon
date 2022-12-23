@@ -211,11 +211,13 @@ class Node(abc.ABC):
         for input_connector in self.input_connectors():
             for output_connector in input_connector.partners:
                 if not output_connector.parent_node.is_finished():
+                    logging.debug(f'Node {self} expecting data: {output_connector.parent_node} not finished')
                     return True
 
         # Check data still pending in queue
         for input_connector in self.input_connectors():
             if not input_connector.empty():
+                logging.debug(f'Node {self} expecting data: {input_connector} not empty')
                 return True
 
         return False

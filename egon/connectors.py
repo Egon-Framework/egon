@@ -187,8 +187,7 @@ class InputConnector(BaseConnector):
 
             except (Empty, TimeoutError):
                 if self.parent_node and self.parent_node.is_expecting_data():
-                    logging.debug(
-                        f'Get operation for {self} timed out - trying again (parent expecting data)')
+                    logging.debug(f'Get operation for {self} timed out - trying again (parent expecting data)')
                     continue
 
                 logging.info(f'Get operation for {self} timed out finally')
