@@ -11,7 +11,7 @@ class EgonProcess(mp.Process):
 
     def __init__(self, *args, **kwargs) -> None:
         super(EgonProcess, self).__init__(*args, **kwargs)
-        self.egon_id = uuid.uuid4()
+        self.egon_id = str(uuid.uuid4())
 
 
 class MultiprocessingEngine:
