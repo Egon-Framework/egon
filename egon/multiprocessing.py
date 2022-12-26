@@ -4,6 +4,14 @@ from __future__ import annotations
 
 import logging
 import multiprocessing as mp
+import uuid
+
+
+class EgonProcess(mp.Process):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super(EgonProcess, self).__init__(*args, **kwargs)
+        self.egon_id = uuid.uuid4()
 
 
 class MultiprocessingEngine:
@@ -34,7 +42,12 @@ class MultiprocessingEngine:
         """Wrapper method for calling the target function and updating process status"""
 
         self._target()
-        self._states[id(mp.current_process())] = True
+
+        current_id = mp.current_process().pid
+        for process in self._processes:
+            if process.pid == current_id:
+                self._states[process.egon_id] = True
+                break
 
     def reset(self) -> None:
         """Reset the engine instance so it can be reused
@@ -71,8 +84,8 @@ class MultiprocessingEngine:
         if num_processes <= 0:
             raise ValueError('Number of processes must be greater than zero')
 
-        self._processes = [mp.Process(target=self._wrap_target) for _ in range(num_processes)]
-        self._states = mp.Manager().dict({id(p): False for p in self._processes})
+        self._processes = [EgonProcess(target=self._wrap_target) for _ in range(num_processes)]
+        self._states = mp.Manager().dict({p.egon_id: False for p in self._processes})
 
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
@@ -104,4 +117,4 @@ class MultiprocessingEngine:
 
         for p in self._processes:
             p.kill()
-            self._states[id(p)] = True
+            self._states[p.egon_id] = True
