@@ -29,11 +29,11 @@ class MultiprocessingEngine:
         self._locked = False
         self.set_num_processes(num_processes)
 
-    def _wrap_target(self) -> None:  # pragma: nocover - this method called from child process
+    def _wrap_target(self) -> None:  # pragma: nocover - this method called from a child process
         """Wrapper method for calling the target function and updating process status"""
 
         self._target()
-        self._states[id(mp.current_process())] = True
+        self._states[mp.current_process().pid] = True
 
     def reset(self) -> None:
         """Reset the engine instance so it can be reused
@@ -71,12 +71,11 @@ class MultiprocessingEngine:
             raise ValueError('Number of processes must be greater than zero')
 
         self._processes = [mp.Process(target=self._wrap_target) for _ in range(num_processes)]
-        self._states = mp.Manager().dict({id(p): False for p in self._processes})
 
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
 
-        return all(self._states.values())
+        return self._locked and all(self._states.values())
 
     def run(self) -> None:
         """Start all processes and join them to the current process"""
@@ -90,6 +89,7 @@ class MultiprocessingEngine:
         self._locked = True
         for p in self._processes:
             p.start()
+            self._states[p.pid] = False
 
     def join(self) -> None:
         """Wait for any running processes to exit before continuing execution"""
@@ -102,4 +102,4 @@ class MultiprocessingEngine:
 
         for p in self._processes:
             p.kill()
-            self._states[id(p)] = True
+            self._states[p.pid] = True
