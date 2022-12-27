@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import multiprocessing as mp
 
 
@@ -76,7 +75,6 @@ class MultiprocessingEngine:
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
 
-        logging.debug(f'engine states: {self._states}')
         return self._locked and all(self._states.values())
 
     def run(self) -> None:

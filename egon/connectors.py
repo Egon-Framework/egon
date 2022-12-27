@@ -10,7 +10,6 @@ single/slot style interface for connecting analysis nodes together.
 
 from __future__ import annotations
 
-import logging
 import multiprocessing as mp
 import uuid
 from queue import Empty
@@ -45,7 +44,6 @@ class BaseConnector:
 
         # Other connector objects connected to this instance
         self._connected_partners: Set[BaseConnector] = set()
-        logging.info(f'New connector {self} attached to parent {self._parent_node}')
 
     @property
     def id(self) -> str:
@@ -66,7 +64,6 @@ class BaseConnector:
             other: The connector to add
         """
 
-        logging.debug(f'Adding {other} as partner to {self}')
         self._connected_partners.add(other)
 
     def _remove_partner(self, other: BaseConnector) -> None:
@@ -76,7 +73,6 @@ class BaseConnector:
             other: The connector to remove
         """
 
-        logging.debug(f'Removing {other} as partner from {self}')
         self._connected_partners.remove(other)
 
     @property
@@ -175,25 +171,21 @@ class InputConnector(BaseConnector):
         if refresh_interval <= 0 or timeout < 0:
             raise ValueError('Connector refresh and timeout intervals must be greater than zero.')
 
-        logging.info(f'Getting data from {self} with timeout {timeout}')
         while timeout > 0:
             this_timeout = min(timeout, refresh_interval)
             timeout -= this_timeout
 
             try:
                 x = self._queue.get(timeout=this_timeout)
-                logging.info(f'Get operation for {self} successful')
+
                 return x
 
             except (Empty, TimeoutError):
                 if self.parent_node and self.parent_node.is_expecting_data():
-                    logging.debug(f'Get operation for {self} timed out - trying again (parent expecting data)')
                     continue
 
-                logging.info(f'Get operation for {self} timed out finally')
                 raise
 
-        logging.info(f'Get operation for {self} timed out finally')
         raise TimeoutError
 
     def iter_get(self, timeout: Optional[int] = None, refresh_interval: int = 2) -> Any:
@@ -216,7 +208,6 @@ class InputConnector(BaseConnector):
                 'The ``iter_get`` method cannot be used for ``InputConnector`` instances not assigned to a parent node.'
             )
 
-        logging.info(f'Launching iterable get from {self}')
         while self.parent_node.is_expecting_data():
             try:
                 yield self.get(timeout=timeout, refresh_interval=refresh_interval)
@@ -238,9 +229,7 @@ class OutputConnector(BaseConnector):
             ValueError: When attempting to connect two output connectors
         """
 
-        logging.info(f'Connecting {self} to {conn}')
         if type(conn) is type(self):
-            logging.error("Could not join connectors of same types")
             raise ValueError('Cannot join together two connector objects of the same type.')
 
         self._add_partner(conn)
@@ -256,9 +245,7 @@ class OutputConnector(BaseConnector):
             MissingConnectionError: When disconnecting two connectors that are not connected
         """
 
-        logging.info(f'Disconnecting {self} from {conn}')
         if conn not in self._connected_partners:
-            logging.error("Could not find connector in partner list")
             raise MissingConnectionError('The given connector object is not connected to this instance')
 
         # Disconnect both connectors from each other
@@ -275,9 +262,7 @@ class OutputConnector(BaseConnector):
             MissingConnectionError: When putting data into an output that isn't connected to an input
         """
 
-        logging.info(f'Put operation for {self}')
         if not self.is_connected():
-            logging.error('Could not put to disconnected connector')
             raise MissingConnectionError('This output connector is not connected to any input connectors.')
 
         for partner in self._connected_partners:

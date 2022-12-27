@@ -5,7 +5,6 @@ pipeline.
 from __future__ import annotations
 
 import abc
-import logging
 import uuid
 from typing import Tuple
 
@@ -33,7 +32,6 @@ class Node(abc.ABC):
         self._outputs = []
         self._id = str(uuid.uuid4())
 
-        logging.info(f'Creating new node {self}')
         if hasattr(self, '__annotations__'):
             self._create_dynamic_connections()
 
@@ -121,19 +119,14 @@ class Node(abc.ABC):
         """
 
         if not (self._inputs or self._outputs):
-            logging.error(f'Node {self} is invalid - no connector')
             raise NodeValidationError('Node has no input or output connectors')
 
         for connector in self._inputs:
             if not connector.is_connected():
-                logging.error(f'Node {self} is invalid - disconnected connector {connector}')
-
                 raise NodeValidationError(f'Node has an unconnected input named {connector.name}')
 
         for connector in self._outputs:
             if not connector.is_connected():
-                logging.error(f'Node {self} is invalid - disconnected connector {connector}')
-
                 raise NodeValidationError(f'Node has an unconnected output named {connector.name}')
 
     @classmethod
@@ -211,13 +204,11 @@ class Node(abc.ABC):
         for input_connector in self.input_connectors():
             for output_connector in input_connector.partners:
                 if not output_connector.parent_node.is_finished():
-                    logging.debug(f'Node {self} expecting data: {output_connector.parent_node} not finished')
                     return True
 
         # Check data still pending in queue
         for input_connector in self.input_connectors():
             if not input_connector.empty():
-                logging.debug(f'Node {self} expecting data: {input_connector} not empty')
                 return True
 
         return False
