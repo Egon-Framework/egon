@@ -30,7 +30,7 @@ class MultiprocessingEngine:
         self._locked = False
         self.set_num_processes(num_processes)
 
-    def _wrap_target(self) -> None:  # pragma: nocover - this method called from child process
+    def _wrap_target(self) -> None:  # pragma: nocover - this method called from a child process
         """Wrapper method for calling the target function and updating process status"""
 
         self._target()
