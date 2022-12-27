@@ -7,11 +7,10 @@ on:
 jobs:
   python_tests:
     name: Run Tests
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", windows-latest", "macos-latest" ]
         python-version: [ "3.8", "3.9", "3.10" ]
 
     steps:
@@ -27,9 +26,8 @@ jobs:
         run: pip install coverage .
 
       - name: Run tests with coverage
-        timeout-minutes: 2
         run: |
-          coverage run -m unittest discover --verbose
+          coverage run -m unittest discover 
           coverage report --omit="tests/*"
           coverage xml --omit="tests/*" -o report_${{ matrix.python-version }}.xml
 
