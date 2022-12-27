@@ -176,9 +176,7 @@ class InputConnector(BaseConnector):
             timeout -= this_timeout
 
             try:
-                x = self._queue.get(timeout=this_timeout)
-
-                return x
+                return self._queue.get(timeout=this_timeout)
 
             except (Empty, TimeoutError):
                 if self.parent_node and self.parent_node.is_expecting_data():
