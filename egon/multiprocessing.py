@@ -4,14 +4,6 @@ from __future__ import annotations
 
 import logging
 import multiprocessing as mp
-import uuid
-
-
-class EgonProcess(mp.Process):
-
-    def __init__(self, *args, **kwargs) -> None:
-        super(EgonProcess, self).__init__(*args, **kwargs)
-        self.egon_id = str(uuid.uuid4())
 
 
 class MultiprocessingEngine:
@@ -42,12 +34,7 @@ class MultiprocessingEngine:
         """Wrapper method for calling the target function and updating process status"""
 
         self._target()
-
-        current_id = mp.current_process().pid
-        for process in self._processes:
-            if process.pid == current_id:
-                self._states[process.egon_id] = True
-                break
+        self._states[mp.current_process().pid] = True
 
     def reset(self) -> None:
         """Reset the engine instance so it can be reused
@@ -84,14 +71,13 @@ class MultiprocessingEngine:
         if num_processes <= 0:
             raise ValueError('Number of processes must be greater than zero')
 
-        self._processes = [EgonProcess(target=self._wrap_target) for _ in range(num_processes)]
-        self._states = mp.Manager().dict({p.egon_id: False for p in self._processes})
+        self._processes = [mp.Process(target=self._wrap_target) for _ in range(num_processes)]
 
     def is_finished(self) -> bool:
         """Return whether all processes in the pool have exited execution"""
 
         logging.debug(f'engine states: {self._states}')
-        return all(self._states.values())
+        return self._locked and all(self._states.values())
 
     def run(self) -> None:
         """Start all processes and join them to the current process"""
@@ -105,6 +91,7 @@ class MultiprocessingEngine:
         self._locked = True
         for p in self._processes:
             p.start()
+            self._states[p.pid] = False
 
     def join(self) -> None:
         """Wait for any running processes to exit before continuing execution"""
@@ -117,4 +104,4 @@ class MultiprocessingEngine:
 
         for p in self._processes:
             p.kill()
-            self._states[p.egon_id] = True
+            self._states[p.pid] = True
