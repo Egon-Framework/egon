@@ -82,14 +82,14 @@ class RunAsync(TestCase):
         pipeline = create_valid_pipeline()
         pipeline.run_async()
         self.assertFalse(pipeline.is_finished())
-        sleep(6)  # Let any child processes finish running
+        sleep(5)  # Let any child processes finish running
 
     def test_finished_after_running(self) -> None:
         """Test the pipeline is marked as ``finished`` after it finishes executing"""
 
         pipeline = create_valid_pipeline()
         pipeline.run_async()
-        sleep(6)  # Let any child processes finish running
+        sleep(5)  # Let any child processes finish running
         self.assertTrue(pipeline.is_finished())
 
 

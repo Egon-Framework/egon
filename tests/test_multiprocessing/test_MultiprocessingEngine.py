@@ -195,7 +195,7 @@ class Join(TestCase):
     def test_join_after_execution(self) -> None:
         """Test no errors are raised when joining processes after the engine finishes executing"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(1))
         engine.run()
         engine.join()
 
@@ -232,6 +232,6 @@ class Kill(TestCase):
     def test_kill_after_execution(self) -> None:
         """Test no errors are raised when killing processes after the engine finishes executing"""
 
-        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(1))
         engine.run()
         engine.kill()

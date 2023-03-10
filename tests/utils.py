@@ -1,17 +1,13 @@
 """Helper utilities for dynamically building testing constructs."""
 
-from time import sleep
-
 from egon import Node, Pipeline
 
 
 class DummyNode(Node):
-    """A node object that sleeps for 5 seconds"""
+    """A node object that does nothing"""
 
     def action(self) -> None:
-        """Sleep for 5 seconds"""
-
-        sleep(5)
+        """Do nothing"""
 
 
 def create_valid_pipeline() -> Pipeline:

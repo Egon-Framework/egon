@@ -156,7 +156,7 @@ class Get(TestCase):
         self.assertTrue(downstream.is_expecting_data())
 
         with self.assertRaises(TimeoutError):
-            downstream.input.get(timeout=4)
+            downstream.input.get(timeout=2)
 
     def test_empty_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector"""
