@@ -19,8 +19,7 @@ class IDAssignment(TestCase):
 class Validation(TestCase):
     """Tests the ``validation`` method"""
 
-    @staticmethod
-    def test_valid_pipeline_no_error() -> None:
+    def test_valid_pipeline_no_error(self) -> None:
         """Test a valid pipeline raises no errors"""
 
         create_valid_pipeline().validate()
@@ -122,7 +121,7 @@ class Join(TestCase):
         """Test an error is raised when joining a pipeline before it has started running"""
 
         pipeline = create_valid_pipeline()
-        with self.assertRaisesRegex(RuntimeError, 'can only join already running processes'):
+        with self.assertRaisesRegex(RuntimeError, 'Can only join processes after they have been started'):
             pipeline.join()
 
     def test_join_after_execution(self) -> None:
@@ -148,7 +147,7 @@ class Kill(TestCase):
         """Test an error is raised when killing a pipeline before it has started running"""
 
         pipeline = create_valid_pipeline()
-        with self.assertRaisesRegex(RuntimeError, 'can only terminate already running processes'):
+        with self.assertRaisesRegex(RuntimeError, 'Can only kill processes after they have been started'):
             pipeline.kill()
 
     def test_kill_after_execution(self) -> None:
