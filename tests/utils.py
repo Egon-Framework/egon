@@ -56,5 +56,11 @@ def create_disconnected_pipeline() -> Pipeline:
     """
 
     pipe = create_valid_pipeline()
+
+    # Create an additional set of nodes that are connected amongst themselves
+    # but not to the rest of the pipeline
     pipe.d3 = pipe.create_node(DummyNode, name='d3')
+    pipe.d4 = pipe.create_node(DummyNode, name='d4')
+    pipe.d3.create_output().connect(pipe.d4.create_input())
+
     return pipe
