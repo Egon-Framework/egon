@@ -115,6 +115,24 @@ class Run(TestCase):
         self.assertTrue(pipeline.is_finished())
 
 
+class Join(TestCase):
+    """Test the joining of processes via the ``join`` method"""
+
+    def test_join_before_execution_error(self) -> None:
+        """Test an error is raised when joining a pipeline before it has started running"""
+
+        pipeline = create_valid_pipeline()
+        with self.assertRaisesRegex(RuntimeError, 'can only join already running processes'):
+            pipeline.join()
+
+    def test_join_after_execution(self) -> None:
+        """Test no errors are raised when joining a pipeline after it is finished executing"""
+
+        pipeline = create_valid_pipeline()
+        pipeline.run()
+        pipeline.join()
+
+
 class Kill(TestCase):
     """Test the termination of processes via the ``kill`` method"""
 
@@ -125,3 +143,17 @@ class Kill(TestCase):
         pipeline.run_async()
         pipeline.kill()
         self.assertTrue(pipeline.is_finished())
+
+    def test_kill_before_execution_error(self) -> None:
+        """Test an error is raised when killing a pipeline before it has started running"""
+
+        pipeline = create_valid_pipeline()
+        with self.assertRaisesRegex(RuntimeError, 'can only terminate already running processes'):
+            pipeline.kill()
+
+    def test_kill_after_execution(self) -> None:
+        """Test no errors are raised when killing a pipeline after it is finished executing"""
+
+        pipeline = create_valid_pipeline()
+        pipeline.run()
+        pipeline.kill()

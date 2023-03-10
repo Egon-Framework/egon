@@ -182,6 +182,24 @@ class Run(TestCase):
         self.assertEqual(4, len(shared_list))
 
 
+class Join(TestCase):
+    """Test the joining of processes via the ``join`` method"""
+
+    def test_join_before_execution_error(self) -> None:
+        """Test an error is raised when joining processes before the engine has started"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        with self.assertRaisesRegex(RuntimeError, 'can only join already running processes'):
+            engine.join()
+
+    def test_join_after_execution(self) -> None:
+        """Test no errors are raised when joining processes after the engine finishes executing"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine.run()
+        engine.join()
+
+
 class Kill(TestCase):
     """Test the termination of processes via the ``kill`` method"""
 
@@ -203,3 +221,17 @@ class Kill(TestCase):
         sleep(2)  # Wait for processes to close out before testing them
         for proc in engine._processes:
             self.assertFalse(proc.is_alive())
+
+    def test_kill_before_execution_error(self) -> None:
+        """Test an error is raised when killing processes before the engine has started"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        with self.assertRaisesRegex(RuntimeError, 'can only kill already running processes'):
+            engine.kill()
+
+    def test_kill_after_execution(self) -> None:
+        """Test no errors are raised when killing processes after the engine finishes executing"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        engine.run()
+        engine.kill()
