@@ -34,6 +34,11 @@ class IDAssignment(TestCase):
 class ParentNode(TestCase):
     """Test the ``parent_node`` attribute"""
 
+    def test_defaults_to_none(self) -> None:
+        """Test the return value is ``None`` when not attached to a parent node"""
+
+        self.assertIsNone(BaseConnector().parent_node)
+
     def test_parent_node_returned(self) -> None:
         """Test the parent node is returned by the ``parent_node`` attribute"""
 
