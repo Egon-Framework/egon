@@ -2,15 +2,8 @@
 
 from unittest import TestCase
 
-from egon import Node
 from egon.connectors import BaseConnector
-
-
-class TestNode(Node):
-    """Dummy node object for running tests"""
-
-    def action(self):
-        """Implements method required by abstract parent class"""
+from ..utils import DummyNode
 
 
 class NameAssignment(TestCase):
@@ -35,7 +28,7 @@ class IDAssignment(TestCase):
     def test_is_uuid_format(self) -> None:
         """Test the instance ID is in UUID4 format"""
 
-        self.assertRegex(TestNode().id, r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}')
+        self.assertRegex(DummyNode().id, r'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}')
 
 
 class ParentNode(TestCase):
@@ -44,7 +37,7 @@ class ParentNode(TestCase):
     def test_parent_node_returned(self) -> None:
         """Test the parent node is returned by the ``parent_node`` attribute"""
 
-        node = TestNode()
+        node = DummyNode()
         connector = BaseConnector(parent_node=node)
         self.assertIs(node, connector.parent_node)
 

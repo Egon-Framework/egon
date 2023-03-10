@@ -37,6 +37,8 @@ class MaxSizeValidation(TestCase):
     """Test errors are raised for invalid ``maxsize`` arguments at init"""
 
     def test_negative_error(self) -> None:
+        """Test an error is raised for negative ``max_size`` values"""
+
         with self.assertRaises(ValueError):
             InputConnector(maxsize=-1)
 
@@ -44,10 +46,14 @@ class MaxSizeValidation(TestCase):
             InputConnector(maxsize=-1.4)
 
     def test_float_error(self) -> None:
+        """Test an error is raised for float ``max_size`` values"""
+
         with self.assertRaises(ValueError):
             InputConnector(maxsize=1.3)
 
     def test_zero_allowed(self) -> None:
+        """Test zero is accepted as a valid ``max_size`` value"""
+
         connector = InputConnector(maxsize=0)
         self.assertEqual(0, connector.maxsize)
 

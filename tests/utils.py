@@ -1,0 +1,64 @@
+"""Helper utilities for dynamically building testing constructs."""
+
+from time import sleep
+
+from egon import Node, Pipeline
+
+
+class DummyNode(Node):
+    """A node object that sleeps for 5 seconds"""
+
+    def action(self) -> None:
+        """Sleep for 5 seconds"""
+
+        sleep(5)
+
+
+def create_valid_pipeline() -> Pipeline:
+    """Return a valid pipeline with two connected nodes
+
+    Returns:
+        A valid pipeline with two nodes
+    """
+
+    pipe = Pipeline()
+    pipe.d1 = pipe.create_node(DummyNode, name='d1')
+    pipe.d1.out = pipe.d1.create_output()
+
+    pipe.d2 = pipe.create_node(DummyNode, name='d2')
+    pipe.d2.inp = pipe.d2.create_input()
+
+    pipe.d1.out.connect(pipe.d2.inp)
+    return pipe
+
+
+def create_cyclic_pipeline() -> Pipeline:
+    """Return a cyclic pipeline with two cyclically interconnected nodes
+
+    The returned pipeline includes two nodes each with an output connected
+    to the other node's input.
+
+    Returns:
+        An invalid, cyclical pipeline with two nodes
+    """
+
+    pipe = create_valid_pipeline()
+    pipe.d1.inp = pipe.d1.create_input()
+    pipe.d2.out = pipe.d2.create_output()
+    pipe.d2.out.connect(pipe.d1.inp)
+    return pipe
+
+
+def create_disconnected_pipeline() -> Pipeline:
+    """Return a pipeline with a disconnected node
+
+    The returned pipeline includes two connected nodes plus a third
+    disconnected node.
+
+    Returns:
+        An invalid pipeline with a third disconnected node
+    """
+
+    pipe = create_valid_pipeline()
+    pipe.d3 = pipe.create_node(DummyNode, name='d3')
+    return pipe
