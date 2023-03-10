@@ -163,6 +163,16 @@ class RunAsync(TestCase):
 
         engine.kill()
 
+    def test_concurrent_run_error(self) -> None:
+        """Test an error is raised when the engine is already running"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(5))
+        engine.run_async()
+        with self.assertRaises(RuntimeError):
+            engine.run_async()
+
+        engine.kill()
+
 
 class Run(TestCase):
     """Test the ``run`` method"""
@@ -176,6 +186,16 @@ class Run(TestCase):
         engine.run()
 
         self.assertEqual(4, len(shared_list))
+
+    def test_concurrent_run_error(self) -> None:
+        """Test an error is raised when the engine is already running"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(5))
+        engine.run_async()
+        with self.assertRaises(RuntimeError):
+            engine.run()
+
+        engine.kill()
 
 
 class Join(TestCase):
