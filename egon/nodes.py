@@ -1,6 +1,4 @@
-"""``Node`` objects represent individual analysis steps in a data analysis
-pipeline.
-"""
+"""``Node`` objects represent individual analysis steps in a data analysis pipeline."""
 
 from __future__ import annotations
 
@@ -22,8 +20,8 @@ class Node(abc.ABC):
         Child classes should extend this method to define node inputs and outputs.
 
         Args:
-            name: Set a descriptive name for the connector object
             num_processes: The number of processes to allocate to the node instance
+            name: A descriptive name for the connector object
         """
 
         self.name = name or self.__class__.__name__
@@ -38,7 +36,6 @@ class Node(abc.ABC):
     def _create_dynamic_connections(self) -> None:
         """Dynamically create input and output connectors based on class annotations"""
 
-        # Dynamically create input/output connectors based on class attributes
         for connector_name, connector_type in self.__annotations__.items():
             if connector_type is InputConnector:
                 setattr(self, connector_name, self.create_input(connector_name))
@@ -92,22 +89,22 @@ class Node(abc.ABC):
         return connector
 
     def input_connectors(self) -> Tuple[InputConnector, ...]:
-        """Return a collection of input connectors attached to this node"""
+        """Return all input connectors attached to this node"""
 
         return tuple(self._inputs)
 
     def output_connectors(self) -> Tuple[OutputConnector, ...]:
-        """Return a collection of output connectors attached to this node"""
+        """Return all output connectors attached to this node"""
 
         return tuple(self._outputs)
 
     def upstream_nodes(self) -> Tuple[Node, ...]:
-        """Return a list of upstream nodes connected to the current node"""
+        """Return all upstream nodes connected to the current node"""
 
         return tuple(p.parent_node for c in self._inputs for p in c.partners)
 
     def downstream_nodes(self) -> Tuple[Node, ...]:
-        """Return a list of downstream nodes connected to the current node"""
+        """Return all downstream nodes connected to the current node"""
 
         return tuple(p.parent_node for c in self._outputs for p in c.partners)
 
@@ -173,7 +170,7 @@ class Node(abc.ABC):
         """Helper method for the public ``execute`` method
 
         This method is a wrapper for running the ``setup``, ``action``, and
-        ``teardown`` methods in order.
+        ``teardown`` methods.
         """
 
         self.setup()
@@ -206,7 +203,7 @@ class Node(abc.ABC):
                 if not output_connector.parent_node.is_finished():
                     return True
 
-        # Check data still pending in queue
+        # Check if data is pending in any input queues
         for input_connector in self.input_connectors():
             if not input_connector.empty():
                 return True

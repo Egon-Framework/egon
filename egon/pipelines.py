@@ -1,6 +1,4 @@
-"""Pipeline objects are used to orchestrate the
-execution of multiple analysis nodes.
-"""
+"""``Pipeline`` objects are used to orchestrate the execution of multiple analysis nodes."""
 
 import uuid
 from typing import Dict, Tuple, Type, TypeVar
@@ -12,7 +10,7 @@ NODE_TYPE = TypeVar('NODE_TYPE', bound=Node)
 
 
 class Pipeline:
-    """Base class for orchestrating an interconnected collection of analysis nodes"""
+    """Base class for creating new analysis pipelines"""
 
     def __init__(self) -> None:
         """Instantiate the parent pipeline
@@ -33,7 +31,7 @@ class Pipeline:
         """Create a new analysis node and attach it to the current pipeline
 
         Args:
-            node_class: The Node subclass to instantiate
+            node_class: The ``Node`` class to instantiate
             *args: Any positional arguments for instantiating the node
             **kwargs: Any keyword arguments for instantiating the node
 
