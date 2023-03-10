@@ -141,7 +141,13 @@ class Get(TestCase):
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
-    def test_timeout_with_running_parent_error(self) -> None:
+    def test_empty_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector"""
+
+        with self.assertRaises(Empty):
+            InputConnector().get()
+
+    def test_timeout_with_pending_parent_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector
 
         This is a regression test using a connector attached to a parent node
@@ -157,12 +163,6 @@ class Get(TestCase):
 
         with self.assertRaises(TimeoutError):
             downstream.input.get(timeout=2)
-
-    def test_empty_error(self) -> None:
-        """Test an ``Empty`` error is raised when fetching from an empty connector"""
-
-        with self.assertRaises(Empty):
-            InputConnector().get()
 
     def test_empty_with_finished_parent_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector
