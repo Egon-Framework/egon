@@ -3,7 +3,7 @@
 from time import sleep
 from unittest import TestCase
 
-from egon.exceptions import PipelineValidationError
+from egon.exceptions import PipelineValidationError, NodeValidationError
 from tests.utils import create_valid_pipeline, create_cyclic_pipeline, create_disconnected_pipeline
 
 
@@ -35,6 +35,14 @@ class Validation(TestCase):
 
         with self.assertRaisesRegex(PipelineValidationError, 'disconnected nodes'):
             create_disconnected_pipeline().validate()
+
+    def test_invalid_node_error(self) -> None:
+        """Test nodes are validated as part of the pipeline validation process"""
+
+        pipeline = create_valid_pipeline()
+        pipeline.get_all_nodes()[0].create_output('extra_output')
+        with self.assertRaisesRegex(NodeValidationError, 'unconnected output'):
+            pipeline.validate()
 
 
 class IsFinished(TestCase):

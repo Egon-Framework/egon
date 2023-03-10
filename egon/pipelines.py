@@ -54,6 +54,9 @@ class Pipeline:
             PipelineValidationError: For an invalid pipeline instance
         """
 
+        for node in self.get_all_nodes():
+            node.validate()
+
         if self._is_cyclic():
             raise PipelineValidationError('The analysis pipeline has a cyclical connection')
 
