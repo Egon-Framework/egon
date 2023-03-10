@@ -106,7 +106,7 @@ class SetNumProcesses(TestCase):
         with self.assertRaises(RuntimeError):
             engine.set_num_processes(5)
 
-        sleep(2)  # Let asynchronous processes exit
+        engine.kill()
 
     def test_error_after_running(self) -> None:
         """Test a ``RuntimeError`` is raised when setting processes on engine that finished executing"""
@@ -161,7 +161,7 @@ class RunAsync(TestCase):
         for proc in engine._processes:
             self.assertTrue(proc.is_alive())
 
-        sleep(5)  # Let asynchronous processes exit
+        engine.kill()
 
 
 class Run(TestCase):
