@@ -87,6 +87,9 @@ class MultiprocessingEngine:
     def run_async(self) -> None:
         """Start all processes asynchronously"""
 
+        if self._locked:
+            raise RuntimeError('Cannot start a process pool twice.')
+
         self._locked = True
         for p in self._processes:
             p.start()
