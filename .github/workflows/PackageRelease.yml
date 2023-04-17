@@ -27,10 +27,12 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
+      # Get the new package version from the release tag
+      # Git release tags are expected to start with "refs/tags/v"
       - name: Set package version
         run: |
           tag=${{github.ref}}
-          poetry version "${tag:1}"
+          poetry version "${tag#refs/tags/v}"
 
       - name: Build package
         run: poetry build -v
