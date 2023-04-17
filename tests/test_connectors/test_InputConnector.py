@@ -37,6 +37,8 @@ class MaxSizeValidation(TestCase):
     """Test errors are raised for invalid ``maxsize`` arguments at init"""
 
     def test_negative_error(self) -> None:
+        """Test an error is raised for negative ``max_size`` values"""
+
         with self.assertRaises(ValueError):
             InputConnector(maxsize=-1)
 
@@ -44,10 +46,14 @@ class MaxSizeValidation(TestCase):
             InputConnector(maxsize=-1.4)
 
     def test_float_error(self) -> None:
+        """Test an error is raised for float ``max_size`` values"""
+
         with self.assertRaises(ValueError):
             InputConnector(maxsize=1.3)
 
     def test_zero_allowed(self) -> None:
+        """Test zero is accepted as a valid ``max_size`` value"""
+
         connector = InputConnector(maxsize=0)
         self.assertEqual(0, connector.maxsize)
 
@@ -135,7 +141,13 @@ class Get(TestCase):
         with self.assertRaises(TimeoutError):
             connector.get(timeout=0)
 
-    def test_timeout_with_running_parent_error(self) -> None:
+    def test_empty_error(self) -> None:
+        """Test an ``Empty`` error is raised when fetching from an empty connector"""
+
+        with self.assertRaises(Empty):
+            InputConnector().get()
+
+    def test_timeout_with_pending_parent_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector
 
         This is a regression test using a connector attached to a parent node
@@ -150,13 +162,7 @@ class Get(TestCase):
         self.assertTrue(downstream.is_expecting_data())
 
         with self.assertRaises(TimeoutError):
-            downstream.input.get(timeout=4)
-
-    def test_empty_error(self) -> None:
-        """Test an ``Empty`` error is raised when fetching from an empty connector"""
-
-        with self.assertRaises(Empty):
-            InputConnector().get()
+            downstream.input.get(timeout=2)
 
     def test_empty_with_finished_parent_error(self) -> None:
         """Test an ``Empty`` error is raised when fetching from an empty connector

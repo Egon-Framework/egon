@@ -98,14 +98,24 @@ class SetNumProcesses(TestCase):
         with self.assertRaises(ValueError):
             engine.set_num_processes(0)
 
-    def test_locked_engine_error(self) -> None:
-        """Test a ``RuntimeError`` is raised when setting processes on a locked engine"""
+    def test_error_while_running(self) -> None:
+        """Test a ``RuntimeError`` is raised when setting processes on a currently running engine"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(2))
+        engine.run_async()
+        with self.assertRaises(RuntimeError):
+            engine.set_num_processes(5)
+
+        engine.kill()
+
+    def test_error_after_running(self) -> None:
+        """Test a ``RuntimeError`` is raised when setting processes on engine that finished executing"""
 
         engine = MultiprocessingEngine(num_processes=4, target=lambda: None)
         engine.run()
 
         with self.assertRaises(RuntimeError):
-            engine.set_num_processes(2)
+            engine.set_num_processes(5)
 
 
 class IsFinished(TestCase):
@@ -143,29 +153,25 @@ class IsFinished(TestCase):
 class RunAsync(TestCase):
     """Test the ``run_async`` method"""
 
-    def setUp(self) -> None:
-        """Create an engine instance"""
-
-        self.engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(10))
-
-    def tearDown(self) -> None:
-        """Kill any running child processes"""
-
-        self.engine.kill()
-
-    def test_processes_not_settable(self) -> None:
-        """Test the number of processes is locked upon launch"""
-
-        self.engine.run_async()
-        with self.assertRaises(RuntimeError):
-            self.engine.set_num_processes(1)
-
     def test_processes_are_launched(self) -> None:
         """Test child processes are launched by the method"""
 
-        self.engine.run_async()
-        for proc in self.engine._processes:
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(5))
+        engine.run_async()
+        for proc in engine._processes:
             self.assertTrue(proc.is_alive())
+
+        engine.kill()
+
+    def test_concurrent_run_error(self) -> None:
+        """Test an error is raised when the engine is already running"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(5))
+        engine.run_async()
+        with self.assertRaises(RuntimeError):
+            engine.run_async()
+
+        engine.kill()
 
 
 class Run(TestCase):
@@ -180,6 +186,34 @@ class Run(TestCase):
         engine.run()
 
         self.assertEqual(4, len(shared_list))
+
+    def test_concurrent_run_error(self) -> None:
+        """Test an error is raised when the engine is already running"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(5))
+        engine.run_async()
+        with self.assertRaises(RuntimeError):
+            engine.run()
+
+        engine.kill()
+
+
+class Join(TestCase):
+    """Test the joining of processes via the ``join`` method"""
+
+    def test_join_before_execution_error(self) -> None:
+        """Test an error is raised when joining processes before the engine has started"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        with self.assertRaisesRegex(RuntimeError, 'Can only join processes after they have been started'):
+            engine.join()
+
+    def test_join_after_execution(self) -> None:
+        """Test no errors are raised when joining processes after the engine finishes executing"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(1))
+        engine.run()
+        engine.join()
 
 
 class Kill(TestCase):
@@ -203,3 +237,17 @@ class Kill(TestCase):
         sleep(2)  # Wait for processes to close out before testing them
         for proc in engine._processes:
             self.assertFalse(proc.is_alive())
+
+    def test_kill_before_execution_error(self) -> None:
+        """Test an error is raised when killing processes before the engine has started"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(30))
+        with self.assertRaisesRegex(RuntimeError, 'Can only kill processes after they have been started'):
+            engine.kill()
+
+    def test_kill_after_execution(self) -> None:
+        """Test no errors are raised when killing processes after the engine finishes executing"""
+
+        engine = MultiprocessingEngine(num_processes=4, target=lambda: sleep(1))
+        engine.run()
+        engine.kill()

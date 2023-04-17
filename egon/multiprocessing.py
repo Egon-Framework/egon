@@ -86,6 +86,9 @@ class MultiprocessingEngine:
     def run_async(self) -> None:
         """Start all processes asynchronously"""
 
+        if self._locked:
+            raise RuntimeError('Cannot start a process pool twice.')
+
         self._locked = True
         for p in self._processes:
             p.start()
@@ -94,11 +97,17 @@ class MultiprocessingEngine:
     def join(self) -> None:
         """Wait for any running processes to exit before continuing execution"""
 
+        if not self._locked:
+            raise RuntimeError('Can only join processes after they have been started.')
+
         for p in self._processes:
             p.join()
 
     def kill(self) -> None:
         """Kill all running processes without attempting to exit gracefully"""
+
+        if not self._locked:
+            raise RuntimeError('Can only kill processes after they have been started.')
 
         for p in self._processes:
             p.kill()
