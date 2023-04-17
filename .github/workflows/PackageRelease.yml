@@ -1,4 +1,4 @@
-name: PyPi
+name: Release
 
 on:
   release:
@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     name: Run Tests
-    uses: ./.github/workflows/Unittests.yml
+    uses: ./.github/workflows/PackageTest.yml
     secrets: inherit
 
   build:
