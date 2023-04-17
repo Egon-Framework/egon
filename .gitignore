@@ -133,3 +133,6 @@ dmypy.json
 
 # Databases
 *.db
+
+# Compiled documentation
+site/
