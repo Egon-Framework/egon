@@ -1,4 +1,4 @@
 site_name: egon
 theme: material
 nav:
-  - Overview: coming_soon.md
+  - Overview: index.md
