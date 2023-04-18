@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "egon"
 version = "0.0.0"  # Version is set automatically via CI
@@ -20,6 +24,8 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "^9.1.3"
