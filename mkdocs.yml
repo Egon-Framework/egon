@@ -1,4 +1,1 @@
 site_name: egon
-theme: material
-nav:
-  - Overview: index.md
