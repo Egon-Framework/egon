@@ -1,0 +1,3 @@
+# egon.exceptions
+
+::: egon.exceptions
