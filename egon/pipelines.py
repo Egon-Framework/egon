@@ -27,7 +27,7 @@ class Pipeline:
 
         return self._id
 
-    def create_node(self, node_class: Type[NODE_TYPE], /, *args, **kwargs) -> NODE_TYPE:
+    def create_node(self, node_class: Type[NODE_TYPE], /, *args: any, **kwargs: any) -> NODE_TYPE:
         """Create a new analysis node and attach it to the current pipeline
 
         Args:
